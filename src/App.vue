@@ -1,26 +1,188 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div class="app" :data-theme="theme">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+      <div class="logo">
+        <h1>听悦</h1>
+      </div>
+      <div class="nav-controls">
+        <button class="theme-toggle" @click="toggleTheme">
+          {{ theme === 'dark' ? '🌙' : '☀️' }}
+        </button>
+      </div>
+    </nav>
+
+    <!-- 主要内容区 -->
+    <main class="main-content">
+      <!-- 欢迎区域 -->
+      <section v-if="!currentAudio" class="welcome-section">
+        <div class="action-cards">
+          <div class="card" @click="showRecordModal = true">
+            <div class="card-icon">🎙️</div>
+            <h3>开始录音</h3>
+            <p>点击开始录制新的音频</p>
+          </div>
+          
+          <div class="card" @click="showImportModal = true">
+            <div class="card-icon">📁</div>
+            <h3>导入音频</h3>
+            <p>上传已有的音频文件</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 录音模态框 -->
+      <RecordModal 
+        v-if="showRecordModal" 
+        @close="showRecordModal = false"
+        @save="handleSaveRecording"
+      />
+
+      <!-- 导入模态框 -->
+      <ImportModal
+        v-if="showImportModal"
+        @close="showImportModal = false"
+        @import="handleImportAudio"
+      />
+
+      <!-- 工作区 -->
+      <section v-if="currentAudio" class="workspace-section">
+        <WorkspaceView
+          :audio-url="currentAudio.url"
+          :audio-name="currentAudio.name"
+          :status="currentAudio.status"
+          @back="currentAudio = null"
+          @save="handleSaveTranscription"
+          @export="handleExportTranscription"
+        />
+      </section>
+    </main>
+  </div>
 </template>
 
-<script>
-import HelloWorld from './components/HelloWorld.vue'
+<script setup>
+import { ref } from 'vue'
+import RecordModal from './components/RecordModal.vue'
+import ImportModal from './components/ImportModal.vue'
+import WorkspaceView from './components/WorkspaceView.vue'
 
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
+// 状态管理
+const theme = ref('light')
+const showRecordModal = ref(false)
+const showImportModal = ref(false)
+const currentAudio = ref(null)
+
+// 主题切换
+const toggleTheme = () => {
+  theme.value = theme.value === 'light' ? 'dark' : 'light'
+}
+
+// 处理录音保存
+const handleSaveRecording = (audioData) => {
+  console.log('保存录音:', audioData)
+  showRecordModal.value = false
+  // TODO: 调用API保存录音
+}
+
+// 处理音频导入
+const handleImportAudio = (file) => {
+  console.log('导入音频:', file)
+  showImportModal.value = false
+  // TODO: 调用API上传音频
+}
+
+// 处理转写保存
+const handleSaveTranscription = (data) => {
+  console.log('保存转写:', data)
+  // TODO: 调用API保存转写
+}
+
+// 处理转写导出
+const handleExportTranscription = (data) => {
+  console.log('导出转写:', data)
+  // TODO: 调用API导出转写
 }
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+<style scoped>
+.app {
+  min-height: 100vh;
+  background: var(--primary-bg);
+  color: var(--primary-text);
 }
-</style>
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--secondary-bg);
+}
+
+.logo h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+}
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.welcome-section {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.action-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.card {
+  background: var(--secondary-bg);
+  border-radius: 12px;
+  padding: 2rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.card h3 {
+  margin: 0.5rem 0;
+  font-weight: 600;
+}
+
+.card p {
+  color: var(--secondary-text);
+  margin: 0;
+}
+
+.workspace-section {
+  flex: 1;
+  overflow: hidden;
+}
+</style> 
