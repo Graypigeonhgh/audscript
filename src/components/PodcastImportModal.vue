@@ -29,10 +29,7 @@
           </div>
         </div>
 
-        <button 
-          class="primary-btn" 
-          @click="handleImport"
-        >
+        <button class="primary-btn" @click="handleImport">
           导入播客
         </button>
       </div>
@@ -60,10 +57,15 @@ const handleImport = () => {
 <style lang="scss">
 @import '@/assets/styles/modal.scss';
 
+.modal-header {
+  margin-bottom: 1.5rem !important;
+}
+
 .podcast-input {
   width: 85%;
-  margin: 0 auto 1.5rem;
+  margin: 0 auto 0.5rem;
   text-align: center;
+  height: 42px;
   
   &::placeholder {
     text-align: center;
@@ -71,18 +73,18 @@ const handleImport = () => {
 }
 
 .podcast-preview {
-  margin: 1rem 0;
-  padding: 1.5rem;
+  margin: 0.25rem 0;
+  padding: 0.75rem;
   background: var(--secondary-bg);
   border-radius: 12px;
   display: flex;
-  gap: 1.5rem;
+  gap: 0.75rem;
 }
 
 .podcast-cover {
-  width: 80px;
-  height: 80px;
-  border-radius: 8px;
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
   object-fit: cover;
 }
 
@@ -90,23 +92,32 @@ const handleImport = () => {
   flex: 1;
   
   h3 {
-    margin: 0 0 0.75rem 0;
+    margin: 0 0 0.25rem 0;
     color: var(--primary-text);
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
   
   p {
     margin: 0;
     color: var(--secondary-text);
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: 0.85rem;
+    line-height: 1.3;
   }
 }
 
 .duration {
   display: block;
-  margin-top: 0.75rem;
-  font-size: 0.9rem;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
   color: var(--secondary-text);
+}
+
+.modal-body {
+  gap: 1rem !important;
+}
+
+.primary-btn {
+  height: 42px !important;
+  margin-top: 0.25rem !important;
 }
 </style> 
