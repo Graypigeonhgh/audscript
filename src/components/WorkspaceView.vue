@@ -32,9 +32,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import AudioPlayer from './AudioPlayer.vue'
 import TranscriptionEditor from './TranscriptionEditor.vue'
+import { audioApi } from '@/api'
 
 const props = defineProps({
   audioUrl: {
@@ -54,12 +55,41 @@ const props = defineProps({
 const emit = defineEmits(['back', 'save', 'export'])
 const audioPlayer = ref(null)
 
-// 模拟的转写数据
-const transcription = ref([
-  { timestamp: 0, content: '这是第一段转写的内容...' },
-  { timestamp: 30, content: '这是第二段转写的内容...' },
-  { timestamp: 60, content: '这是第三段转写的内容...' },
-])
+// 替换模拟的转写数据
+const transcription = ref([])
+const isLoading = ref(false)
+const error = ref(null)
+
+// 获取音频转写结果
+const fetchTranscription = async () => {
+  if (!props.audioUrl) return
+  
+  try {
+    isLoading.value = true
+    error.value = null
+    
+    // 上传并转写音频
+    const response = await audioApi.uploadAndTranscribe(props.audioUrl)
+    
+    // 格式化转写结果
+    transcription.value = response.text.split('\n').map((content, index) => ({
+      timestamp: index * 30, // 假设每段30秒
+      content
+    }))
+  } catch (err) {
+    console.error('转写失败:', err)
+    error.value = err.message
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 监听音频URL变化
+watch(() => props.audioUrl, () => {
+  if (props.audioUrl) {
+    fetchTranscription()
+  }
+})
 
 const statusText = computed(() => {
   const statusMap = {

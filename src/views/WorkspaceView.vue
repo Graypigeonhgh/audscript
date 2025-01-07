@@ -73,37 +73,71 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import RecordModal from '@/components/RecordModal.vue'
 import ImportModal from '@/components/ImportModal.vue'
+import { projectApi } from '@/api'
 
 const showRecordModal = ref(false)
 const showImportModal = ref(false)
 
-// 模拟的项目数据
-const activeProjects = ref([
-  {
-    id: 1,
-    name: '每周会议记录',
-    createdAt: new Date('2024-03-10'),
-    progress: 75,
-    status: 'processing' // processing, completed, error
-  },
-  {
-    id: 2,
-    name: '课程笔记转录',
-    createdAt: new Date('2024-03-12'),
-    progress: 100,
-    status: 'completed'
-  },
-  {
-    id: 3,
-    name: '播客内容转写',
-    createdAt: new Date('2024-03-13'),
-    progress: 30,
-    status: 'error'
+// 替换模拟的项目数据
+const activeProjects = ref([])
+const isLoading = ref(false)
+const error = ref(null)
+
+// 获取项目列表
+const fetchProjects = async () => {
+  try {
+    isLoading.value = true
+    error.value = null
+    const response = await projectApi.getProjects({
+      page: 1,
+      size: 10,
+      status: 'active'
+    })
+    activeProjects.value = response.data
+  } catch (err) {
+    console.error('获取项目列表失败:', err)
+    error.value = err.message
+  } finally {
+    isLoading.value = false
   }
-])
+}
+
+// 创建新项目
+const createProject = async (projectData) => {
+  try {
+    isLoading.value = true
+    error.value = null
+    await projectApi.createProject(projectData)
+    await fetchProjects() // 刷新项目列表
+  } catch (err) {
+    console.error('创建项目失败:', err)
+    error.value = err.message
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 删除项目
+const deleteProject = async (projectId) => {
+  try {
+    isLoading.value = true
+    error.value = null
+    await projectApi.deleteProject(projectId)
+    await fetchProjects() // 刷新项目列表
+  } catch (err) {
+    console.error('删除项目失败:', err)
+    error.value = err.message
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchProjects()
+})
 
 // 格式化日期
 const formatDate = (date) => {

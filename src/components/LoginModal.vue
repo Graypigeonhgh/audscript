@@ -59,6 +59,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { userApi } from '@/api'
 
 const emit = defineEmits(['close', 'login'])
 const isLogin = ref(true)
@@ -68,50 +69,41 @@ const formData = reactive({
   confirmPassword: ''
 })
 
-// Mock用户数据
-const mockUsers = [
-  { username: 'test', password: '123456' }
-]
-
 const handleSubmit = async () => {
   try {
-    if (!isLogin.value && formData.password !== formData.confirmPassword) {
-      alert('两次输入的密码不一致')
-      return
-    }
+    loading.value = true
+    errorMessage.value = ''
 
-    // TODO: 替换为实际的API调用
     if (isLogin.value) {
-      // 模拟登录请求
-      const user = mockUsers.find(u => 
-        u.username === formData.username && 
-        u.password === formData.password
-      )
-      
-      if (user) {
-        emit('login', { username: user.username })
-        emit('close')
-      } else {
-        alert('用户名或密码错误')
-      }
-    } else {
-      // 模拟注册请求
-      if (mockUsers.some(u => u.username === formData.username)) {
-        alert('用户名已存在')
-        return
-      }
-      
-      mockUsers.push({
+      // 调用登录API
+      const response = await userApi.login({
         username: formData.username,
         password: formData.password
       })
       
-      alert('注册成功')
+      // 保存token到localStorage
+      localStorage.setItem('token', response.token)
+      
+      // 触发登录成功事件
+      emit('login', { username: formData.username })
+      emit('close')
+    } else {
+      // 调用注册API
+      await userApi.register({
+        username: formData.username,
+        password: formData.password,
+        email: formData.email
+      })
+      
+      // 注册成功后切换到登录界面
+      alert('注册成功，请登录')
       isLogin.value = true
     }
   } catch (error) {
-    console.error('登录/注册失败:', error)
-    alert('操作失败，请重试')
+    console.error('操作失败:', error)
+    errorMessage.value = error.response?.data?.message || '操作失败，请重试'
+  } finally {
+    loading.value = false
   }
 }
 </script>

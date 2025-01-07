@@ -120,6 +120,7 @@ import WorkspaceView from './components/WorkspaceView.vue'
 import PodcastImportModal from './components/PodcastImportModal.vue'
 import LoginModal from './components/LoginModal.vue'
 import RecordingIndicator from '@/components/RecordingIndicator.vue'
+import { userApi } from '@/api'
 
 const router = useRouter()
 const currentUser = ref(null)
@@ -140,14 +141,35 @@ const closeUserMenu = () => {
 }
 
 // 处理登录
-const handleLogin = (userData) => {
-  currentUser.value = userData
-  showLoginModal.value = false
-  closeUserMenu()
+const handleLogin = async (userData) => {
+  try {
+    const response = await userApi.login({
+      username: userData.username,
+      password: userData.password
+    })
+    
+    // 保存token
+    localStorage.setItem('token', response.token)
+    
+    // 更新用户状态
+    currentUser.value = {
+      username: userData.username
+    }
+    
+    showLoginModal.value = false
+    closeUserMenu()
+  } catch (error) {
+    console.error('登录失败:', error)
+    alert(error.response?.data?.message || '登录失败，请重试')
+  }
 }
 
 // 处理退出登录
 const handleLogout = () => {
+  // 清除token
+  localStorage.removeItem('token')
+  
+  // 清除用户状态
   currentUser.value = null
   closeUserMenu()
   router.push('/')

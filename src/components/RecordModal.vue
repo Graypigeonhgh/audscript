@@ -688,10 +688,11 @@
 </style>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, onUnmounted } from 'vue'
+import { audioApi } from '@/api'
 
 // 只定义 emits
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'save'])
 
 // 响应式变量定义
 const visualizer = ref(null)
@@ -1271,4 +1272,66 @@ const initAudioElement = () => {
   // 预加载音频
   audioElement.value.load()
 }
+
+// 修改录音完成后的处理逻辑
+const handleRecordingComplete = async (audioBlob) => {
+  try {
+    isProcessing.value = true
+    errorMessage.value = ''
+    
+    // 创建音频文件
+    const audioFile = new File([audioBlob], 'recording.webm', {
+      type: audioFormat.value
+    })
+    
+    // 上传并转写音频
+    const response = await audioApi.uploadAndTranscribe(audioFile)
+    
+    // 触发保存事件
+    emit('save', {
+      file: audioFile,
+      url: URL.createObjectURL(audioBlob),
+      transcription: response.text
+    })
+    
+    // 关闭模态框
+    emit('close')
+  } catch (error) {
+    console.error('处理录音失败:', error)
+    errorMessage.value = '处理录音失败，请重试'
+  } finally {
+    isProcessing.value = false
+  }
+}
+
+// 添加实时语音识别功能
+let recognitionStream = null
+
+const startStreamRecognition = async () => {
+  try {
+    recognitionStream = await audioApi.startStreamRecognition()
+    
+    // 处理实时识别结果
+    recognitionStream.onmessage = (event) => {
+      const result = JSON.parse(event.data)
+      // 更新实时转写结果
+      transcription.value += result.text + '\n'
+    }
+  } catch (error) {
+    console.error('实时识别失败:', error)
+    errorMessage.value = '实时识别失败，请重试'
+  }
+}
+
+const stopStreamRecognition = () => {
+  if (recognitionStream) {
+    recognitionStream.close()
+    recognitionStream = null
+  }
+}
+
+// 在组件卸载时清理
+onUnmounted(() => {
+  stopStreamRecognition()
+})
 </script> 

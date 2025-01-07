@@ -1,0 +1,69 @@
+import request from './request'
+
+export const projectApi = {
+  /**
+   * 获取项目列表
+   * @param {Object} params - 查询参数
+   * @param {number} params.page - 页码
+   * @param {number} params.size - 每页数量
+   * @param {string} params.status - 项目状态
+   * @returns {Promise<Object>} 项目列表数据
+   */
+  getProjects(params) {
+    return request({
+      url: '/api/projects',
+      method: 'get',
+      params
+    })
+  },
+
+  /**
+   * 创建新项目
+   * @param {Object} data - 项目数据
+   * @param {string} data.name - 项目名称
+   * @param {string} data.description - 项目描述
+   * @param {File} data.audioFile - 音频文件
+   * @returns {Promise<Object>} 创建的项目信息
+   */
+  createProject(data) {
+    const formData = new FormData()
+    formData.append('name', data.name)
+    formData.append('description', data.description)
+    formData.append('audioFile', data.audioFile)
+
+    return request({
+      url: '/api/projects',
+      method: 'post',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
+
+  /**
+   * 更新项目
+   * @param {string} projectId - 项目ID
+   * @param {Object} data - 更新数据
+   * @returns {Promise<Object>} 更新后的项目信息
+   */
+  updateProject(projectId, data) {
+    return request({
+      url: `/api/projects/${projectId}`,
+      method: 'put',
+      data
+    })
+  },
+
+  /**
+   * 删除项目
+   * @param {string} projectId - 项目ID
+   * @returns {Promise<void>}
+   */
+  deleteProject(projectId) {
+    return request({
+      url: `/api/projects/${projectId}`,
+      method: 'delete'
+    })
+  }
+} 

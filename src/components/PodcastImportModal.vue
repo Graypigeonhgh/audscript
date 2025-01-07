@@ -39,6 +39,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { podcastApi } from '@/api'
 
 const emit = defineEmits(['close', 'import'])
 const podcastUrl = ref('')
@@ -49,8 +50,43 @@ const previewData = ref({
   duration: '45:30'
 })
 
-const handleImport = () => {
-  emit('import', { url: podcastUrl.value || 'mock-podcast-url' })
+const handleImport = async () => {
+  try {
+    isLoading.value = true
+    error.value = null
+    
+    const response = await podcastApi.importPodcast({
+      url: podcastUrl.value,
+      name: name.value
+    })
+    
+    // 开始轮询转写状态
+    pollTranscriptionStatus(response.podcastId)
+    
+    emit('import', response)
+  } catch (err) {
+    console.error('导入播客失败:', err)
+    error.value = err.message
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 轮询转写状态
+const pollTranscriptionStatus = async (podcastId) => {
+  const interval = setInterval(async () => {
+    try {
+      const status = await podcastApi.getTranscriptionStatus(podcastId)
+      if (status.completed) {
+        clearInterval(interval)
+        const transcription = await podcastApi.getTranscription(podcastId)
+        emit('transcription-complete', transcription)
+      }
+    } catch (err) {
+      console.error('获取转写状态失败:', err)
+      clearInterval(interval)
+    }
+  }, 5000) // 每5秒检查一次
 }
 </script>
 
