@@ -28,6 +28,12 @@
             <h3>导入音频</h3>
             <p>上传已有的音频文件</p>
           </div>
+          
+          <div class="card" @click="showPodcastModal = true">
+            <div class="card-icon">🎙️</div>
+            <h3>导入播客</h3>
+            <p>输入播客链接转换为文本</p>
+          </div>
         </div>
       </section>
 
@@ -43,6 +49,13 @@
         v-if="showImportModal"
         @close="showImportModal = false"
         @import="handleImportAudio"
+      />
+
+      <!-- 添加播客导入模态框 -->
+      <PodcastImportModal
+        v-if="showPodcastModal"
+        @close="showPodcastModal = false"
+        @import="handlePodcastImport"
       />
 
       <!-- 工作区 -->
@@ -65,11 +78,13 @@ import { ref } from 'vue'
 import RecordModal from './components/RecordModal.vue'
 import ImportModal from './components/ImportModal.vue'
 import WorkspaceView from './components/WorkspaceView.vue'
+import PodcastImportModal from './components/PodcastImportModal.vue'
 
 // 状态管理
 const theme = ref('light')
 const showRecordModal = ref(false)
 const showImportModal = ref(false)
+const showPodcastModal = ref(false)
 const currentAudio = ref(null)
 
 // 主题切换
@@ -101,6 +116,13 @@ const handleSaveTranscription = (data) => {
 const handleExportTranscription = (data) => {
   console.log('导出转写:', data)
   // TODO: 调用API导出转写
+}
+
+// 处理播客导入
+const handlePodcastImport = (podcastData) => {
+  console.log('导入播客:', podcastData)
+  showPodcastModal.value = false
+  // TODO: 调用API处理播客导入
 }
 </script>
 
