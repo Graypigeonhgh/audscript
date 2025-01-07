@@ -384,99 +384,216 @@
 
 .preview-mode {
   .audio-player-container {
-    background: var(--secondary-bg);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .audio-controls {
-    margin-bottom: 1rem;
+    background: linear-gradient(180deg, var(--secondary-bg) 0%, var(--primary-bg) 100%);
+    border-radius: 24px;
+    padding: 2.5rem;
+    margin: 1.5rem auto;
+    max-width: 600px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
     
-    .progress-bar {
-      width: 100%;
-      height: 4px;
-      -webkit-appearance: none;
-      background: var(--border-color);
-      border-radius: 2px;
-      outline: none;
-      margin-bottom: 0.5rem;
+    .audio-controls {
+      margin-bottom: 2rem;
       
-      &::-webkit-slider-thumb {
+      .progress-bar {
+        width: 100%;
+        height: 8px;
         -webkit-appearance: none;
-        width: 12px;
-        height: 12px;
-        background: var(--accent-color);
-        border-radius: 50%;
+        background: rgba(var(--accent-color-rgb), 0.1);
+        border-radius: 4px;
+        outline: none;
+        margin-bottom: 1rem;
         cursor: pointer;
+        position: relative;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          height: 10px;
+        }
+        
+        &::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 20px;
+          height: 20px;
+          background: var(--accent-color);
+          border: 4px solid #fff;
+          border-radius: 50%;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+          transition: all 0.2s ease;
+          
+          &:hover {
+            transform: scale(1.2);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+          }
+        }
+      }
+      
+      .time-display {
+        display: flex;
+        justify-content: space-between;
+        font-family: 'SF Mono', monospace;
+        color: var(--secondary-text);
+        font-size: 0.9rem;
+        padding: 0 0.5rem;
       }
     }
     
-    .time-display {
+    .playback-controls {
       display: flex;
-      justify-content: space-between;
-      font-family: monospace;
-      color: var(--secondary-text);
-    }
-  }
-  
-  .playback-controls {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    
-    .control-btn {
-      &.primary {
-        background: var(--accent-color);
-        color: white;
+      justify-content: center;
+      align-items: center;
+      gap: 2rem;
+      margin: 2rem 0;
+      
+      .control-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        min-width: 48px;
+        height: 48px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(var(--secondary-bg-rgb), 0.5);
+        color: var(--primary-text);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        
+        .icon {
+          width: 24px;
+          height: 24px;
+        }
         
         &:hover {
-          background: var(--accent-color-dark, var(--accent-color));
+          background: var(--border-color);
+          transform: translateY(-2px);
+        }
+        
+        &.primary {
+          background: var(--accent-color);
+          color: white;
+          padding: 1.25rem;
+          min-width: 64px;
+          height: 64px;
+          
+          .icon {
+            width: 32px;
+            height: 32px;
+          }
+          
+          &:hover {
+            background: var(--accent-color-dark, var(--accent-color));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(var(--accent-color-rgb), 0.3);
+          }
+        }
+      }
+    }
+    
+    .speed-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      
+      label {
+        color: var(--secondary-text);
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      
+      select {
+        padding: 0.5rem 2rem 0.5rem 1rem;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        background: var(--primary-bg);
+        color: var(--primary-text);
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.5rem center;
+        
+        &:hover {
+          border-color: var(--accent-color);
+          transform: translateY(-1px);
+        }
+        
+        &:focus {
+          outline: none;
+          border-color: var(--accent-color);
+          box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.1);
         }
       }
     }
   }
   
-  .speed-control {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
+  .preview-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 1rem;
     
-    select {
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      border: 1px solid var(--border-color);
-      background: var(--primary-bg);
-      color: var(--primary-text);
-    }
-  }
-}
-
-.preview-actions {
-  display: flex;
-  gap: 1rem;
-  
-  button {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    
-    .icon {
-      width: 20px;
-      height: 20px;
-    }
-  }
-  
-  .danger-btn {
-    background: #dc2626;
-    color: white;
-    
-    &:hover {
-      background: #b91c1c;
+    button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 1rem;
+      border: none;
+      border-radius: 16px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      .icon {
+        width: 20px;
+        height: 20px;
+      }
+      
+      &.primary-btn {
+        background: var(--accent-color);
+        color: white;
+        grid-column: span 2;
+        
+        &:hover {
+          background: var(--accent-color-dark, var(--accent-color));
+          transform: translateY(-2px);
+          box-shadow: 0 8px 16px rgba(var(--accent-color-rgb), 0.2);
+        }
+      }
+      
+      &.secondary-btn {
+        background: var(--secondary-bg);
+        color: var(--primary-text);
+        
+        &:hover {
+          background: var(--border-color);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
+        }
+      }
+      
+      &.danger-btn {
+        background: rgba(220, 38, 38, 0.1);
+        color: #dc2626;
+        grid-column: span 2;
+        max-width: 200px;
+        margin: 0 auto;
+        
+        &:hover {
+          background: rgba(220, 38, 38, 0.15);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 12px rgba(220, 38, 38, 0.1);
+        }
+      }
     }
   }
 }
@@ -828,26 +945,67 @@ const stopRecording = () => {
   
   // 初始化音频播放器
   nextTick(() => {
+    // 确保先创建新的音频元素
     audioElement.value = document.createElement('audio')
-    audioElement.value.src = audioUrl.value
+    
+    // 添加事件监听器
     audioElement.value.addEventListener('loadedmetadata', () => {
       duration.value = Math.floor(audioElement.value.duration)
     })
+    
     audioElement.value.addEventListener('timeupdate', () => {
-      currentTime.value = Math.floor(audioElement.value.currentTime)
+      if (audioElement.value) {
+        currentTime.value = Math.floor(audioElement.value.currentTime)
+      }
     })
+    
     audioElement.value.addEventListener('ended', () => {
       isPlaying.value = false
     })
+    
+    // 最后设置音频源
+    audioElement.value.src = audioUrl.value
+    
+    // 预加载音频
+    audioElement.value.load()
   })
 }
 
-// 重新录制
+// 修改重新录制函数
 const handleRetry = () => {
-  audioChunks = []
-  audioUrl.value = null
-  recordingTime.value = 0
-  startRecording()
+  if (confirm('确定要重新录制吗？当前录音将被丢弃')) {
+    // 清理当前录音数据
+    cleanup()
+    
+    // 重置录音相关状态
+    audioChunks = []
+    audioUrl.value = null
+    recordingTime.value = 0
+    currentTime.value = 0
+    duration.value = 0
+    isPlaying.value = false
+    errorMessage.value = ''
+    
+    // 切换回录音模式
+    isPreviewMode.value = false
+    
+    // 清理音频元素
+    if (audioElement.value) {
+      audioElement.value.pause()
+      audioElement.value.src = ''
+      audioElement.value = null
+    }
+    
+    // 初始化录音设备
+    nextTick(() => {
+      initializeRecording().then(() => {
+        // 自动开始新的录音
+        startRecording()
+      }).catch(error => {
+        errorMessage.value = error.message || '初始化录音设备失败'
+      })
+    })
+  }
 }
 
 // 保存录音
@@ -879,36 +1037,58 @@ const toggleRecording = () => {
 
 // 音频播放控制方法
 const togglePlay = () => {
-  if (!audioElement.value) return
+  if (!audioElement.value || !audioElement.value.src) return
   
-  if (isPlaying.value) {
-    audioElement.value.pause()
-  } else {
-    audioElement.value.play()
+  try {
+    if (isPlaying.value) {
+      audioElement.value.pause()
+    } else {
+      audioElement.value.play()
+    }
+    isPlaying.value = !isPlaying.value
+  } catch (error) {
+    console.error('播放控制失败:', error)
   }
-  isPlaying.value = !isPlaying.value
 }
 
 const handleSeek = (event) => {
-  if (!audioElement.value) return
-  const time = Number(event.target.value)
-  audioElement.value.currentTime = time
-  currentTime.value = time
+  if (!audioElement.value || !audioElement.value.src) return
+  try {
+    const time = Number(event.target.value)
+    audioElement.value.currentTime = time
+    currentTime.value = time
+  } catch (error) {
+    console.error('进度调节失败:', error)
+  }
 }
 
 const skipBackward = () => {
-  if (!audioElement.value) return
-  audioElement.value.currentTime -= 10
+  if (!audioElement.value || !audioElement.value.src) return
+  try {
+    const newTime = Math.max(0, audioElement.value.currentTime - 10)
+    audioElement.value.currentTime = newTime
+  } catch (error) {
+    console.error('快退失败:', error)
+  }
 }
 
 const skipForward = () => {
-  if (!audioElement.value) return
-  audioElement.value.currentTime += 10
+  if (!audioElement.value || !audioElement.value.src) return
+  try {
+    const newTime = Math.min(audioElement.value.duration, audioElement.value.currentTime + 10)
+    audioElement.value.currentTime = newTime
+  } catch (error) {
+    console.error('快进失败:', error)
+  }
 }
 
 const changePlaybackRate = () => {
-  if (!audioElement.value) return
-  audioElement.value.playbackRate = playbackRate.value
+  if (!audioElement.value || !audioElement.value.src) return
+  try {
+    audioElement.value.playbackRate = playbackRate.value
+  } catch (error) {
+    console.error('播放速度调节失败:', error)
+  }
 }
 
 // 下载录音
@@ -955,9 +1135,16 @@ const cleanup = () => {
   }
   if (audioUrl.value) {
     URL.revokeObjectURL(audioUrl.value)
+    audioUrl.value = null
   }
   if (audioContext) {
     audioContext.close()
+    audioContext = null
+  }
+  if (audioElement.value) {
+    audioElement.value.pause()
+    audioElement.value.src = ''
+    audioElement.value = null
   }
 }
 </script> 
