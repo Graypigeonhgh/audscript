@@ -605,10 +605,10 @@ const audioDevices = ref([])
 const selectedDevice = ref('')
 const audioFormat = ref('audio/webm')
 const volumeLevel = ref(0)
-const maxDuration = ref(7200) // 最大录音时长(秒)
+const maxDuration = ref(300) // 最大录音时长（秒）
 const errorMessage = ref('')
 const isDeviceReady = ref(false)
-const isInitializing = ref(true)
+const isInitializing = ref(false)
 const isProcessing = ref(false)
 const shortcutEnabled = ref(true)
 const isPreviewMode = ref(false)
@@ -616,7 +616,7 @@ const isPlaying = ref(false)
 const currentTime = ref(0)
 const duration = ref(0)
 const playbackRate = ref(1)
-const playbackRates = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
+const playbackRates = [0.5, 0.75, 1, 1.25, 1.5, 2]
 const audioElement = ref(null)
 
 // 非响应式变量
@@ -625,45 +625,20 @@ let audioContext = null
 let analyser = null
 let timer = null
 let audioChunks = []
-let animationFrame = null
 
 // 获取按钮文本
 const getButtonText = () => {
-  if (isInitializing.value) return '初始化中...'
   if (isProcessing.value) return '处理中...'
   if (isRecording.value) return '停止录音'
-  if (!isDeviceReady.value) return '检查设备中...'
   return '开始录音'
 }
 
 // 格式化时间
 const formatTime = (seconds) => {
+  if (!seconds) return '00:00'
   const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
+  const secs = Math.floor(seconds % 60)
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-}
-
-// 设置音频上下文
-const setupAudioContext = (stream) => {
-  try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext
-    audioContext = new AudioContext()
-    analyser = audioContext.createAnalyser()
-    
-    analyser.fftSize = 2048
-    analyser.smoothingTimeConstant = 0.8
-    analyser.minDecibels = -90
-    analyser.maxDecibels = -10
-    
-    const source = audioContext.createMediaStreamSource(stream)
-    source.connect(analyser)
-    
-    return true
-  } catch (error) {
-    console.error('设置音频上下文失败:', error)
-    errorMessage.value = '初始化音频处理失败'
-    return false
-  }
 }
 
 // 添加录音格式检测函数
@@ -693,79 +668,125 @@ const getAudioDevices = async () => {
   }
 }
 
-// 开始计时器
+// 开始录音
+const startRecording = async () => {
+  try {
+    isProcessing.value = true
+    
+    // 获取音频流
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        deviceId: selectedDevice.value ? { exact: selectedDevice.value } : undefined,
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      }
+    })
+    
+    // 创建音频上下文
+    audioContext = new (window.AudioContext || window.webkitAudioContext)()
+    analyser = audioContext.createAnalyser()
+    const source = audioContext.createMediaStreamSource(stream)
+    
+    // 配置分析器节点
+    analyser.fftSize = 256
+    analyser.smoothingTimeConstant = 0.8
+    
+    // 连接节点
+    source.connect(analyser)
+    
+    // 创建 MediaRecorder
+    mediaRecorder = new MediaRecorder(stream, {
+      mimeType: audioFormat.value
+    })
+    
+    // 设置数据处理
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        audioChunks.push(e.data)
+      }
+    }
+    
+    // 开始录音
+    mediaRecorder.start()
+    isRecording.value = true
+    startTimer()
+    
+    // 开始可视化
+    requestAnimationFrame(draw)
+    
+  } catch (error) {
+    console.error('开始录音失败:', error)
+    errorMessage.value = '无法访问麦克风，请检查设备权限'
+  } finally {
+    isProcessing.value = false
+  }
+}
+
+// 音频可视化
+const draw = () => {
+  if (!visualizer.value || !analyser || !isRecording.value) return
+  
+  const ctx = visualizer.value.getContext('2d')
+  const width = visualizer.value.width
+  const height = visualizer.value.height
+  const bufferLength = analyser.frequencyBinCount
+  const dataArray = new Uint8Array(bufferLength)
+  
+  analyser.getByteFrequencyData(dataArray)
+  
+  // 清除画布
+  ctx.clearRect(0, 0, width, height)
+  
+  // 创建渐变
+  const gradient = ctx.createLinearGradient(0, 0, width, 0)
+  // 使用具体的 RGB 值而不是 CSS 变量
+  gradient.addColorStop(0, 'rgb(99, 102, 241)') // 主题色
+  gradient.addColorStop(1, 'rgb(168, 85, 247)') // 渐变色
+  
+  ctx.fillStyle = gradient
+  
+  // 计算条形宽度和间距
+  const barWidth = (width / bufferLength) * 2.5
+  const barSpacing = 2
+  let x = 0
+  
+  // 绘制频谱
+  for (let i = 0; i < bufferLength; i++) {
+    const barHeight = (dataArray[i] / 255) * height
+    
+    ctx.fillRect(x, height - barHeight, barWidth, barHeight)
+    x += barWidth + barSpacing
+  }
+  
+  // 更新音量电平
+  const average = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength
+  volumeLevel.value = Math.min(100, (average / 255) * 100)
+  
+  // 请求下一帧动画
+  if (isRecording.value && !isPaused.value) {
+    requestAnimationFrame(draw)
+  }
+}
+
+// 计时器
 const startTimer = () => {
+  stopTimer()
   timer = setInterval(() => {
-    recordingTime.value++
+    if (!isPaused.value) {
+      recordingTime.value++
+      if (recordingTime.value >= maxDuration.value) {
+        stopRecording()
+      }
+    }
   }, 1000)
 }
 
-// 停止计时器
 const stopTimer = () => {
   if (timer) {
     clearInterval(timer)
     timer = null
   }
-}
-
-// 开始可视化
-const startVisualization = () => {
-  if (!analyser || !visualizer.value) return
-  
-  const canvas = visualizer.value
-  const ctx = canvas.getContext('2d')
-  const bufferLength = analyser.frequencyBinCount
-  const dataArray = new Uint8Array(bufferLength)
-  
-  const draw = () => {
-    animationFrame = requestAnimationFrame(draw)
-    analyser.getByteFrequencyData(dataArray)
-    
-    ctx.fillStyle = 'var(--primary-bg)'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    
-    const barWidth = (canvas.width / bufferLength) * 2.5
-    let barHeight
-    let x = 0
-    
-    for (let i = 0; i < bufferLength; i++) {
-      barHeight = (dataArray[i] / 255) * canvas.height
-      
-      ctx.fillStyle = `hsl(${(i / bufferLength) * 360}, 70%, 60%)`
-      ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight)
-      
-      x += barWidth + 1
-    }
-    
-    // 更新音量级别
-    const sum = dataArray.reduce((a, b) => a + b, 0)
-    const average = sum / bufferLength
-    volumeLevel.value = Math.min(100, (average / 255) * 150)
-  }
-  
-  draw()
-}
-
-// 停止可视化
-const stopVisualization = () => {
-  if (animationFrame) {
-    cancelAnimationFrame(animationFrame)
-    animationFrame = null
-  }
-  
-  if (visualizer.value) {
-    const ctx = visualizer.value.getContext('2d')
-    ctx.clearRect(0, 0, visualizer.value.width, visualizer.value.height)
-  }
-  
-  volumeLevel.value = 0
-}
-
-// 获取状态文本
-const getStatusText = () => {
-  if (!isRecording.value) return '准备就绪'
-  if (isPaused.value) return '已暂停'
-  return '录音中...'
 }
 
 // 添加设备检测和初始化函数
@@ -774,119 +795,42 @@ const initializeRecording = async () => {
     isInitializing.value = true
     errorMessage.value = ''
     
-    // 检查浏览器支持
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      throw new Error('您的浏览器不支持录音功能')
-    }
-
-    // 检查音频上下文支持
-    if (!window.AudioContext && !window.webkitAudioContext) {
-      throw new Error('您的浏览器不支持音频处理')
-    }
-
+    // 获取可用的音频设备
     await getAudioDevices()
     
-    // 初始化音频格式
+    // 检查音频格式支持
     const supportedTypes = getSupportedMimeTypes()
     if (supportedTypes.length === 0) {
-      throw new Error('未找到支持的音频格式')
+      throw new Error('浏览器不支持录音功能')
     }
-    audioFormat.value = supportedTypes[0]
     
+    audioFormat.value = supportedTypes[0]
     isDeviceReady.value = true
+    
   } catch (error) {
     console.error('初始化录音失败:', error)
-    errorMessage.value = error.message || '初始化录音失败'
+    errorMessage.value = error.message || '初始化录音设备失败'
     isDeviceReady.value = false
   } finally {
     isInitializing.value = false
   }
 }
 
-// 修改开始录音函数
-const startRecording = async () => {
-  try {
-    isProcessing.value = true
-    errorMessage.value = ''
-    
-    if (recordingTime.value >= maxDuration.value) {
-      throw new Error('已达到最大录音时长')
-    }
-
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: selectedDevice.value ? { deviceId: { exact: selectedDevice.value } } : true
-    })
-
-    // 设置音频上下文
-    if (!setupAudioContext(stream)) {
-      throw new Error('音频初始化失败')
-    }
-    
-    mediaRecorder = new MediaRecorder(stream, {
-      mimeType: audioFormat.value
-    })
-    
-    // 添加错误处理
-    mediaRecorder.onerror = handleRecordingError
-    mediaRecorder.onstop = handleRecordingStop
-    mediaRecorder.onpause = () => updateStatus('已暂停')
-    mediaRecorder.onresume = () => updateStatus('录音中...')
-    mediaRecorder.ondataavailable = handleDataAvailable
-    
-    mediaRecorder.start(1000)
-    isRecording.value = true
-    startTimer()
-    startVisualization()
-    
-  } catch (error) {
-    handleRecordingError(error)
-  } finally {
-    isProcessing.value = false
-  }
-}
-
-// 添加录音事件处理函数
-const handleRecordingError = (error) => {
-  console.error('录音错误:', error)
-  errorMessage.value = error.message || '录音出错，请重试'
-  stopRecording()
-}
-
-const handleRecordingStop = () => {
-  const blob = new Blob(audioChunks, { type: audioFormat.value })
-  audioUrl.value = URL.createObjectURL(blob)
-  updateStatus('录音完成')
-}
-
-const handleDataAvailable = (e) => {
-  if (e.data.size > 0) {
-    audioChunks.push(e.data)
-  }
-}
-
-// 优化暂停/继续录音
+// 暂停/继续录音
 const togglePause = () => {
-  if (!mediaRecorder || isProcessing.value) return
+  if (!mediaRecorder) return
   
   try {
-    isProcessing.value = true
-    
     if (isPaused.value) {
       mediaRecorder.resume()
-      startTimer()
-      startVisualization()
+      isPaused.value = false
     } else {
       mediaRecorder.pause()
-      stopTimer()
-      stopVisualization()
+      isPaused.value = true
     }
-    
-    isPaused.value = !isPaused.value
   } catch (error) {
     console.error('暂停/继续录音失败:', error)
     errorMessage.value = '操作失败，请重试'
-  } finally {
-    isProcessing.value = false
   }
 }
 
@@ -923,6 +867,14 @@ const updateStatus = (status) => {
 const stopRecording = () => {
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.stop()
+    // 添加录音结束的处理
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(audioChunks, { type: audioFormat.value })
+      if (audioUrl.value) {
+        URL.revokeObjectURL(audioUrl.value)
+      }
+      audioUrl.value = URL.createObjectURL(blob)
+    }
     mediaRecorder.stream.getTracks().forEach(track => track.stop())
   }
   isRecording.value = false
@@ -1099,5 +1051,29 @@ const cleanup = () => {
     audioElement.value.src = ''
     audioElement.value = null
   }
+}
+
+// 停止可视化
+const stopVisualization = () => {
+  if (visualizer.value) {
+    const ctx = visualizer.value.getContext('2d')
+    ctx.clearRect(0, 0, visualizer.value.width, visualizer.value.height)
+  }
+  
+  if (audioContext) {
+    audioContext.close()
+    audioContext = null
+  }
+  
+  volumeLevel.value = 0
+}
+
+// 获取状态文本
+const getStatusText = () => {
+  return updateStatus(
+    !isRecording.value ? 'ready' : 
+    isPaused.value ? 'paused' : 
+    'recording'
+  )
 }
 </script> 
