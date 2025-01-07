@@ -163,12 +163,6 @@
               </svg>
               下载录音
             </button>
-            <button class="secondary-btn" @click="handleRetry">
-              <svg class="icon" viewBox="0 0 24 24">
-                <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-              </svg>
-              重新录制
-            </button>
             <button class="danger-btn" @click="handleDelete">
               <svg class="icon" viewBox="0 0 24 24">
                 <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -534,24 +528,24 @@
   
   .preview-actions {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 0 1rem;
+    margin-top: 2rem;
     
     button {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.75rem;
-      padding: 1rem;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      width: 100%;
+      height: 44px;
       border: none;
-      border-radius: 16px;
+      border-radius: 8px;
       font-size: 1rem;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s ease;
       
       .icon {
         width: 20px;
@@ -561,12 +555,10 @@
       &.primary-btn {
         background: var(--accent-color);
         color: white;
-        grid-column: span 2;
         
         &:hover {
           background: var(--accent-color-dark, var(--accent-color));
           transform: translateY(-2px);
-          box-shadow: 0 8px 16px rgba(var(--accent-color-rgb), 0.2);
         }
       }
       
@@ -577,7 +569,6 @@
         &:hover {
           background: var(--border-color);
           transform: translateY(-2px);
-          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
         }
       }
       
@@ -585,13 +576,11 @@
         background: rgba(220, 38, 38, 0.1);
         color: #dc2626;
         grid-column: span 2;
-        max-width: 200px;
-        margin: 0 auto;
+        width: 100%;
         
         &:hover {
           background: rgba(220, 38, 38, 0.15);
           transform: translateY(-2px);
-          box-shadow: 0 6px 12px rgba(220, 38, 38, 0.1);
         }
       }
     }
@@ -969,43 +958,6 @@ const stopRecording = () => {
     // 预加载音频
     audioElement.value.load()
   })
-}
-
-// 修改重新录制函数
-const handleRetry = () => {
-  if (confirm('确定要重新录制吗？当前录音将被丢弃')) {
-    // 清理当前录音数据
-    cleanup()
-    
-    // 重置录音相关状态
-    audioChunks = []
-    audioUrl.value = null
-    recordingTime.value = 0
-    currentTime.value = 0
-    duration.value = 0
-    isPlaying.value = false
-    errorMessage.value = ''
-    
-    // 切换回录音模式
-    isPreviewMode.value = false
-    
-    // 清理音频元素
-    if (audioElement.value) {
-      audioElement.value.pause()
-      audioElement.value.src = ''
-      audioElement.value = null
-    }
-    
-    // 初始化录音设备
-    nextTick(() => {
-      initializeRecording().then(() => {
-        // 自动开始新的录音
-        startRecording()
-      }).catch(error => {
-        errorMessage.value = error.message || '初始化录音设备失败'
-      })
-    })
-  }
 }
 
 // 保存录音
