@@ -78,11 +78,11 @@
             <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
             </svg>
-            <span>登录/注册</span>
+            登录
           </button>
         </div>
         
-        <button class="theme-toggle" @click="toggleTheme" :title="theme === 'dark' ? '切换到明亮模式' : '切换到暗黑模式'">
+        <button class="theme-btn" @click="toggleTheme">
           <svg v-if="theme === 'dark'" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
           </svg>
@@ -271,13 +271,19 @@ const handlePodcastImport = (podcastData) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 2rem;
+  padding: 0.5rem 1.5rem;
   background: var(--primary-bg);
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 100;
   backdrop-filter: blur(8px);
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
 }
 
 .logo {
@@ -292,12 +298,7 @@ const handlePodcastImport = (podcastData) => {
   color: var(--accent-color);
 }
 
-.logo-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.logo h1 {
+.logo-text h1 {
   font-size: 1.25rem;
   margin: 0;
   font-weight: 600;
@@ -311,7 +312,6 @@ const handlePodcastImport = (podcastData) => {
 .main-menu {
   display: flex;
   gap: 1rem;
-  margin-left: 2rem;
 }
 
 .menu-item {
@@ -325,39 +325,19 @@ const handlePodcastImport = (podcastData) => {
   transition: all 0.3s;
 }
 
-.menu-icon {
-  width: 20px;
-  height: 20px;
-}
-
 .menu-item:hover {
   color: var(--primary-text);
-  background: var(--secondary-bg);
+  background: var(--hover-bg);
 }
 
 .menu-item.active {
   color: var(--accent-color);
-  background: var(--secondary-bg);
+  background: var(--active-bg);
 }
 
-.theme-toggle {
-  background: none;
-  border: none;
-  padding: 0.5rem;
-  color: var(--secondary-text);
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.3s;
-}
-
-.theme-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.theme-toggle:hover {
-  color: var(--primary-text);
-  background: var(--secondary-bg);
+.menu-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .nav-right {
@@ -366,76 +346,85 @@ const handlePodcastImport = (podcastData) => {
   gap: 1rem;
 }
 
-.user-menu-trigger {
+.login-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--accent-color);
+  color: white;
+  border: none;
   border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.login-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--hover-shadow);
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.theme-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: var(--hover-bg);
+  border: none;
+  border-radius: 6px;
+  color: var(--secondary-text);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.theme-btn:hover {
+  color: var(--primary-text);
+  background: var(--active-bg);
+}
+
+.theme-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
   transition: all 0.3s;
 }
 
 .user-menu-trigger:hover {
-  background: var(--secondary-bg);
+  background: var(--hover-bg);
+}
+
+.username {
+  font-size: 0.875rem;
+  color: var(--primary-text);
 }
 
 .avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--accent-color);
-  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-}
-
-.user-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 1rem;
-  width: 200px;
-  background: var(--primary-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: var(--card-shadow);
-  margin-top: 0.5rem;
-  overflow: hidden;
-}
-
-.dropdown-header {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.dropdown-items {
-  padding: 0.5rem 0;
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  color: var(--primary-text);
-  text-decoration: none;
-  transition: all 0.3s;
-}
-
-.dropdown-item:hover {
-  background: var(--secondary-bg);
-}
-
-.dropdown-divider {
-  height: 1px;
-  background: var(--border-color);
-  margin: 0.5rem 0;
-}
-
-.logout {
-  color: #ef4444;
+  width: 32px;
+  height: 32px;
+  background: var(--accent-color);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .action-cards {
