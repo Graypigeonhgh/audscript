@@ -3,11 +3,15 @@
     <div class="modal-content">
       <div class="modal-header">
         <h2>{{ isLogin ? '登录' : '注册' }}</h2>
-        <button class="close-btn" @click="$emit('close')">×</button>
+        <button class="close-btn" @click="$emit('close')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
       
       <div class="modal-body">
-        <form @submit.prevent="handleSubmit">
+        <form @submit.prevent="handleSubmit" class="login-form">
           <div class="input-group">
             <label>用户名</label>
             <input 
@@ -152,49 +156,64 @@ const handleSubmit = async () => {
   margin-bottom: 1.5rem;
 }
 
+.modal-body {
+  padding: 0 1rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
 .input-group {
-  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .input-group label {
-  display: block;
-  margin-bottom: 0.5rem;
   color: var(--primary-text);
+  font-size: 0.95rem;
 }
 
 .form-input {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--secondary-bg);
   color: var(--primary-text);
   transition: all 0.3s ease;
+  font-size: 0.95rem;
 }
 
 .form-input:focus {
-  box-shadow: 0 0 0 2px var(--accent-color);
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
 .submit-btn {
   width: 100%;
   padding: 0.75rem;
-  background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  margin-top: 0.5rem;
+  background: var(--accent-color);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 1rem;
+  font-size: 1rem;
 }
 
 .submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--hover-shadow);
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
 .form-footer {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   text-align: center;
 }
 
@@ -204,9 +223,15 @@ const handleSubmit = async () => {
   color: var(--accent-color);
   cursor: pointer;
   padding: 0.5rem;
+  font-size: 0.95rem;
 }
 
 .switch-btn:hover {
   text-decoration: underline;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
 }
 </style> 
