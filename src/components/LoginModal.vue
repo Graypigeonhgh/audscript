@@ -130,10 +130,15 @@ const handleSubmit = async () => {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease-out;
 }
 
 .modal-content {
+  animation: slideUp 0.3s ease-out;
   background: var(--primary-bg);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   width: 90%;
   max-width: 400px;
@@ -164,27 +169,28 @@ const handleSubmit = async () => {
   border-radius: 6px;
   background: var(--secondary-bg);
   color: var(--primary-text);
+  transition: all 0.3s ease;
 }
 
 .form-input:focus {
-  border-color: var(--accent-color);
-  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-color);
 }
 
 .submit-btn {
   width: 100%;
   padding: 0.75rem;
-  background: var(--accent-color);
+  background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   margin-top: 1rem;
 }
 
 .submit-btn:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: var(--hover-shadow);
 }
 
 .form-footer {

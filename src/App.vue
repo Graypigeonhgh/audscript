@@ -1,17 +1,60 @@
 <template>
   <div class="app" :data-theme="theme">
-    <!-- 导航栏 -->
+    <div class="animated-bg"></div>
+    
     <nav class="navbar">
-      <div class="logo">
-        <h1>听悦</h1>
+      <div class="nav-left">
+        <div class="logo">
+          <h1>听悦</h1>
+          <span class="logo-subtitle">AI音频助手</span>
+        </div>
+        
+        <!-- 添加主菜单 -->
+        <div class="main-menu">
+          <router-link to="/" class="menu-item" active-class="active">
+            <span class="menu-icon">🏠</span>
+            首页
+          </router-link>
+          <router-link to="/history" class="menu-item" active-class="active">
+            <span class="menu-icon">📜</span>
+            历史记录
+          </router-link>
+          <router-link to="/workspace" class="menu-item" active-class="active">
+            <span class="menu-icon">💼</span>
+            工作台
+          </router-link>
+        </div>
       </div>
-      <div class="nav-controls">
-        <!-- 添加用户信息/登录按钮 -->
-        <div class="user-section">
+      
+      <div class="nav-right">
+        <!-- 用户菜单 -->
+        <div class="user-section" v-click-outside="closeUserMenu">
           <template v-if="currentUser">
-            <div class="user-info">
-              <span>{{ currentUser.username }}</span>
-              <button class="logout-btn" @click="handleLogout">退出</button>
+            <div class="user-menu-trigger" @click="toggleUserMenu">
+              <span class="username">{{ currentUser.username }}</span>
+              <span class="avatar">{{ currentUser.username[0].toUpperCase() }}</span>
+            </div>
+            
+            <!-- 用户下拉菜单 -->
+            <div class="user-dropdown" v-if="showUserMenu">
+              <div class="dropdown-header">
+                <strong>{{ currentUser.username }}</strong>
+              </div>
+              <div class="dropdown-items">
+                <a href="#" class="dropdown-item" @click="navigateToProfile">
+                  <span class="item-icon">👤</span>
+                  个人资料
+                </a>
+                <a href="#" class="dropdown-item" @click="navigateToSettings">
+                  <span class="item-icon">⚙️</span>
+                  设置
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="#" class="dropdown-item logout" @click="handleLogout">
+                  <span class="item-icon">🚪</span>
+                  退出登录
+                </a>
+              </div>
             </div>
           </template>
           <button v-else class="login-btn" @click="showLoginModal = true">
@@ -109,6 +152,7 @@ const showPodcastModal = ref(false)
 const currentAudio = ref(null)
 const currentUser = ref(null)
 const showLoginModal = ref(false)
+const showUserMenu = ref(false)
 
 // 主题切换
 const toggleTheme = () => {
@@ -158,6 +202,24 @@ const handleLogin = (userData) => {
 const handleLogout = () => {
   currentUser.value = null
 }
+
+const toggleUserMenu = () => {
+  showUserMenu.value = !showUserMenu.value
+}
+
+const closeUserMenu = () => {
+  showUserMenu.value = false
+}
+
+const navigateToProfile = () => {
+  // TODO: 实现导航到个人资料页面
+  closeUserMenu()
+}
+
+const navigateToSettings = () => {
+  // TODO: 实现导航到设置页面
+  closeUserMenu()
+}
 </script>
 
 <style scoped>
@@ -165,87 +227,189 @@ const handleLogout = () => {
   min-height: 100vh;
   background: var(--primary-bg);
   color: var(--primary-text);
-  transition: background-color 0.3s, color 0.3s;
+  transition: all 0.3s ease;
 }
 
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--secondary-bg);
+  padding: 0.5rem 2rem;
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
-  transition: background-color 0.3s;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 64px;
+}
+
+[data-theme='dark'] .navbar {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .logo h1 {
-  margin: 0;
   font-size: 1.5rem;
-  font-weight: 600;
+  margin: 0;
+  background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
-.theme-toggle {
-  background: var(--secondary-bg);
-  border: 1px solid var(--border-color);
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 50%;
+.main-menu {
+  display: flex;
+  gap: 1rem;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  color: var(--secondary-text);
+  text-decoration: none;
   transition: all 0.3s;
 }
 
-.theme-toggle:hover {
-  transform: scale(1.1);
+.menu-item:hover {
+  background: var(--secondary-bg);
+  color: var(--primary-text);
+}
+
+.menu-item.active {
+  background: var(--secondary-bg);
+  color: var(--accent-color);
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.user-menu-trigger:hover {
+  background: var(--secondary-bg);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   background: var(--accent-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
 }
 
-.main-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 1rem;
+  width: 200px;
+  background: var(--primary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  margin-top: 0.5rem;
+  overflow: hidden;
 }
 
-.welcome-section {
-  text-align: center;
-  padding: 2rem 0;
+.dropdown-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dropdown-items {
+  padding: 0.5rem 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: var(--primary-text);
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.dropdown-item:hover {
+  background: var(--secondary-bg);
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.5rem 0;
+}
+
+.logout {
+  color: #ef4444;
 }
 
 .action-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
-  margin-top: 2rem;
+  padding: 2rem;
+  animation: fadeIn 0.5s ease-out;
 }
 
 .card {
-  background: var(--secondary-bg);
-  border-radius: 12px;
+  background: var(--primary-bg);
+  border-radius: 1rem;
   padding: 2rem;
-  cursor: pointer;
-  transition: all 0.3s;
+  text-align: center;
+  transition: all 0.3s ease;
   border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+  animation: slideUp 0.5s ease-out;
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+  box-shadow: var(--hover-shadow);
   border-color: var(--accent-color);
 }
 
 .card-icon {
   font-size: 2.5rem;
   margin-bottom: 1rem;
+  background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
-.card h3 {
-  margin: 0.5rem 0;
-  font-weight: 600;
-}
-
-.card p {
-  color: var(--secondary-text);
-  margin: 0;
+.welcome-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
 .workspace-section {

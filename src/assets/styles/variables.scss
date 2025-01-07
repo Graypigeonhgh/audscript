@@ -7,20 +7,26 @@ html, body {
 
 :root {
   --primary-bg: #ffffff;
-  --secondary-bg: #f7f7f7;
-  --primary-text: #2c3e50;
-  --secondary-text: #666666;
-  --accent-color: #2563eb;
-  --border-color: #e5e7eb;
+  --secondary-bg: #f8fafc;
+  --primary-text: #1e293b;
+  --secondary-text: #64748b;
+  --accent-color: #3b82f6;
+  --border-color: #e2e8f0;
+  --gradient-start: #3b82f6;
+  --gradient-end: #2563eb;
+  --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --hover-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 [data-theme='dark'] {
-  --primary-bg: #121212;
-  --secondary-bg: #1e1e1e;
-  --primary-text: #e5e5e5;
-  --secondary-text: #a0a0a0;
+  --primary-bg: #0f172a;
+  --secondary-bg: #1e293b;
+  --primary-text: #f1f5f9;
+  --secondary-text: #94a3b8;
   --accent-color: #60a5fa;
-  --border-color: #333333;
+  --border-color: #334155;
+  --gradient-start: #60a5fa;
+  --gradient-end: #3b82f6;
 }
 
 // 添加全局滚动条样式
@@ -40,4 +46,37 @@ html, body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--secondary-text);
+}
+
+// 添加全局动画
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+// 添加全局背景动画
+.animated-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: 
+    radial-gradient(circle at 0% 0%, var(--gradient-start) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, var(--gradient-end) 0%, transparent 50%);
+  opacity: 0.05;
+  filter: blur(100px);
+  animation: bgAnimation 15s ease-in-out infinite alternate;
+}
+
+@keyframes bgAnimation {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 } 
