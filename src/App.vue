@@ -6,11 +6,31 @@
         <h1>听悦</h1>
       </div>
       <div class="nav-controls">
+        <!-- 添加用户信息/登录按钮 -->
+        <div class="user-section">
+          <template v-if="currentUser">
+            <div class="user-info">
+              <span>{{ currentUser.username }}</span>
+              <button class="logout-btn" @click="handleLogout">退出</button>
+            </div>
+          </template>
+          <button v-else class="login-btn" @click="showLoginModal = true">
+            登录/注册
+          </button>
+        </div>
+        
         <button class="theme-toggle" @click="toggleTheme">
           {{ theme === 'dark' ? '🌙' : '☀️' }}
         </button>
       </div>
     </nav>
+
+    <!-- 登录模态框 -->
+    <LoginModal
+      v-if="showLoginModal"
+      @close="showLoginModal = false"
+      @login="handleLogin"
+    />
 
     <!-- 主要内容区 -->
     <main class="main-content">
@@ -79,6 +99,7 @@ import RecordModal from './components/RecordModal.vue'
 import ImportModal from './components/ImportModal.vue'
 import WorkspaceView from './components/WorkspaceView.vue'
 import PodcastImportModal from './components/PodcastImportModal.vue'
+import LoginModal from './components/LoginModal.vue'
 
 // 状态管理
 const theme = ref('light')
@@ -86,6 +107,8 @@ const showRecordModal = ref(false)
 const showImportModal = ref(false)
 const showPodcastModal = ref(false)
 const currentAudio = ref(null)
+const currentUser = ref(null)
+const showLoginModal = ref(false)
 
 // 主题切换
 const toggleTheme = () => {
@@ -123,6 +146,17 @@ const handlePodcastImport = (podcastData) => {
   console.log('导入播客:', podcastData)
   showPodcastModal.value = false
   // TODO: 调用API处理播客导入
+}
+
+// 处理登录
+const handleLogin = (userData) => {
+  currentUser.value = userData
+  showLoginModal.value = false
+}
+
+// 处理退出
+const handleLogout = () => {
+  currentUser.value = null
 }
 </script>
 
@@ -240,5 +274,42 @@ const handlePodcastImport = (podcastData) => {
   .card {
     padding: 1.5rem;
   }
+}
+
+.user-section {
+  margin-right: 1rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.login-btn, .logout-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.login-btn {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+}
+
+.logout-btn {
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  color: var(--primary-text);
+}
+
+.login-btn:hover {
+  opacity: 0.9;
+}
+
+.logout-btn:hover {
+  background: var(--border-color);
 }
 </style> 
