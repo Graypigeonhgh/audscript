@@ -703,7 +703,7 @@ const audioDevices = ref([])
 const selectedDevice = ref('')
 const audioFormat = ref('audio/webm')
 const volumeLevel = ref(0)
-const maxDuration = ref(300) // 最大录音时长（秒）
+const maxDuration = ref(7200) // 7200秒 = 2小时
 const errorMessage = ref('')
 const isDeviceReady = ref(false)
 const isInitializing = ref(false)
@@ -734,10 +734,14 @@ const getButtonText = () => {
 
 // 格式化时间
 const formatTime = (seconds) => {
-  if (!seconds) return '00:00'
-  const mins = Math.floor(seconds / 60)
-  const secs = Math.floor(seconds % 60)
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 60
+  
+  if (hours > 0) {
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
 // 添加录音格式检测函数
