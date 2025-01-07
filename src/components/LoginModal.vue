@@ -2,7 +2,9 @@
   <div class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>{{ isLogin ? '登录' : '注册' }}</h2>
+        <div class="header-title">
+          <h2>{{ isLogin ? '登录' : '注册' }}</h2>
+        </div>
         <button class="close-btn" @click="$emit('close')">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -11,20 +13,18 @@
       </div>
       
       <div class="modal-body">
-        <form @submit.prevent="handleSubmit" class="login-form">
+        <form @submit.prevent="handleSubmit">
           <div class="input-group">
-            <label>用户名</label>
             <input 
               type="text" 
               v-model="formData.username"
-              placeholder="请输入用户名"
+              placeholder="请输入用户名或邮箱"
               required
               class="form-input"
             />
           </div>
           
           <div class="input-group">
-            <label>密码</label>
             <input 
               type="password" 
               v-model="formData.password"
@@ -35,7 +35,6 @@
           </div>
           
           <div v-if="!isLogin" class="input-group">
-            <label>确认密码</label>
             <input 
               type="password" 
               v-model="formData.confirmPassword"
@@ -51,10 +50,7 @@
         </form>
         
         <div class="form-footer">
-          <button 
-            class="switch-btn" 
-            @click="isLogin = !isLogin"
-          >
+          <button class="switch-btn" @click="isLogin = !isLogin">
             {{ isLogin ? '没有账号？去注册' : '已有账号？去登录' }}
           </button>
         </div>
@@ -139,80 +135,126 @@ const handleSubmit = async () => {
 }
 
 .modal-content {
-  animation: slideUp 0.3s ease-out;
-  background: var(--primary-bg);
-  box-shadow: var(--card-shadow);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
   width: 90%;
   max-width: 400px;
-  padding: 1.5rem;
+  padding: 2rem;
+  background: var(--primary-bg);
+  border-radius: 12px;
+  box-shadow: var(--modal-shadow);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .modal-header {
+  width: 100%;
+  position: relative;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.header-title {
+  text-align: center;
+}
+
+.header-title h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--primary-text);
+}
+
+.close-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--secondary-text);
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: var(--hover-bg);
+  color: var(--primary-text);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
 }
 
 .modal-body {
-  padding: 0 1rem;
-}
-
-.login-form {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  align-items: center;
+}
+
+form {
+  width: 85%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .input-group {
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.input-group label {
-  color: var(--primary-text);
-  font-size: 0.95rem;
+  justify-content: center;
 }
 
 .form-input {
   width: 100%;
-  padding: 0.75rem;
+  height: 46px;
+  padding: 0 1.25rem;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background: var(--secondary-bg);
   color: var(--primary-text);
-  transition: all 0.3s ease;
   font-size: 0.95rem;
+  text-align: left;
+  transition: all 0.3s ease;
 }
 
 .form-input:focus {
-  outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb), 0.1);
 }
 
 .submit-btn {
   width: 100%;
-  padding: 0.75rem;
+  height: 48px;
   margin-top: 0.5rem;
   background: var(--accent-color);
   color: white;
   border: none;
   border-radius: 8px;
+  font-weight: 500;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 1rem;
 }
 
 .submit-btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: var(--hover-shadow);
 }
 
 .form-footer {
+  width: 100%;
   margin-top: 1.5rem;
   text-align: center;
 }
@@ -223,15 +265,9 @@ const handleSubmit = async () => {
   color: var(--accent-color);
   cursor: pointer;
   padding: 0.5rem;
-  font-size: 0.95rem;
 }
 
 .switch-btn:hover {
   text-decoration: underline;
-}
-
-.icon {
-  width: 20px;
-  height: 20px;
 }
 </style> 
