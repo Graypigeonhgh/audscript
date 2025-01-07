@@ -2,7 +2,7 @@
   <div class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>录音</h2>
+        <h2>{{ isPreviewMode ? '录音预览' : '录音' }}</h2>
         <button class="close-btn" @click="handleClose">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -11,96 +11,170 @@
       </div>
       
       <div class="modal-body">
-        <!-- 设备选择 -->
-        <div class="input-group">
-          <label for="device">选择录音设备</label>
-          <select 
-            id="device" 
-            v-model="selectedDevice"
-            class="form-input"
-          >
-            <option value="">默认设备</option>
-            <option v-for="device in audioDevices" 
-              :key="device.deviceId" 
-              :value="device.deviceId"
+        <!-- 录音模式 -->
+        <div v-if="!isPreviewMode">
+          <!-- 设备选择 -->
+          <div class="input-group">
+            <label for="device">选择录音设备</label>
+            <select 
+              id="device" 
+              v-model="selectedDevice"
+              class="form-input"
+              :disabled="isRecording"
             >
-              {{ device.label }}
-            </option>
-          </select>
-        </div>
+              <option value="">默认设备</option>
+              <option v-for="device in audioDevices" 
+                :key="device.deviceId" 
+                :value="device.deviceId"
+              >
+                {{ device.label }}
+              </option>
+            </select>
+          </div>
 
-        <!-- 录音格式选择 -->
-        <div class="input-group">
-          <label for="format">录音格式</label>
-          <select 
-            id="format" 
-            v-model="audioFormat"
-            class="form-input"
-          >
-            <option value="audio/webm">WebM</option>
-            <option value="audio/mp4">MP4</option>
-            <option value="audio/wav">WAV</option>
-          </select>
-        </div>
+          <!-- 录音格式选择 -->
+          <div class="input-group">
+            <label for="format">录音格式</label>
+            <select 
+              id="format" 
+              v-model="audioFormat"
+              class="form-input"
+              :disabled="isRecording"
+            >
+              <option value="audio/webm">WebM</option>
+              <option value="audio/mp4">MP4</option>
+              <option value="audio/wav">WAV</option>
+            </select>
+          </div>
 
-        <!-- 音频可视化 -->
-        <div class="visualizer-container">
-          <canvas ref="visualizer" class="visualizer"></canvas>
-          <div class="recording-info">
-            <span class="status" :class="{ 'recording': isRecording }">
-              {{ getStatusText() }}
-            </span>
-            <span class="time">
-              {{ formatTime(recordingTime) }}
-              <span class="time-limit" v-if="isRecording">
-                / {{ formatTime(maxDuration) }}
+          <!-- 音频可视化 -->
+          <div class="visualizer-container">
+            <canvas ref="visualizer" class="visualizer"></canvas>
+            <div class="recording-info">
+              <span class="status" :class="{ 'recording': isRecording }">
+                {{ getStatusText() }}
               </span>
-            </span>
+              <span class="time">
+                {{ formatTime(recordingTime) }}
+                <span class="time-limit" v-if="isRecording">
+                  / {{ formatTime(maxDuration) }}
+                </span>
+              </span>
+            </div>
+            <div class="volume-meter" v-if="isRecording">
+              <div class="volume-bar" :style="{ width: volumeLevel + '%' }"></div>
+            </div>
           </div>
-          <div class="volume-meter" v-if="isRecording">
-            <div class="volume-bar" :style="{ width: volumeLevel + '%' }"></div>
+
+          <!-- 录音控制 -->
+          <div class="record-controls">
+            <button 
+              class="control-btn"
+              @click="toggleRecording"
+              :class="{ 
+                'recording': isRecording,
+                'processing': isProcessing 
+              }"
+              :disabled="!isDeviceReady || isProcessing || isInitializing"
+            >
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10" />
+                <path v-if="!isRecording" d="M9 9v6l6-3-6-3z" fill="currentColor" />
+                <rect v-else x="9" y="9" width="6" height="6" />
+              </svg>
+              {{ getButtonText() }}
+            </button>
+            
+            <button 
+              v-if="isRecording"
+              class="control-btn"
+              @click="togglePause"
+            >
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10" />
+                <path v-if="isPaused" d="M10 9v6l4-3-4-3z" fill="currentColor" />
+                <path v-else d="M9 9h2v6H9zM13 9h2v6h-2z" fill="currentColor" />
+              </svg>
+              {{ isPaused ? '继续' : '暂停' }}
+            </button>
           </div>
         </div>
 
-        <!-- 录音控制 -->
-        <div class="record-controls">
-          <button 
-            class="control-btn"
-            @click="toggleRecording"
-            :class="{ 
-              'recording': isRecording,
-              'processing': isProcessing 
-            }"
-            :disabled="!isDeviceReady || isProcessing || isInitializing"
-          >
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <circle cx="12" cy="12" r="10" />
-              <path v-if="!isRecording" d="M9 9v6l6-3-6-3z" fill="currentColor" />
-              <rect v-else x="9" y="9" width="6" height="6" />
-            </svg>
-            {{ getButtonText() }}
-          </button>
-          
-          <button 
-            v-if="isRecording"
-            class="control-btn"
-            @click="togglePause"
-          >
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <circle cx="12" cy="12" r="10" />
-              <path v-if="isPaused" d="M10 9v6l4-3-4-3z" fill="currentColor" />
-              <path v-else d="M9 9h2v6H9zM13 9h2v6h-2z" fill="currentColor" />
-            </svg>
-            {{ isPaused ? '继续' : '暂停' }}
-          </button>
-        </div>
+        <!-- 预览模式 -->
+        <div v-else class="preview-mode">
+          <div class="audio-player-container">
+            <div class="audio-controls">
+              <input 
+                type="range" 
+                class="progress-bar"
+                :value="currentTime"
+                :max="duration"
+                @input="handleSeek"
+              >
+              <div class="time-display">
+                <span>{{ formatTime(currentTime) }}</span>
+                <span>{{ formatTime(duration) }}</span>
+              </div>
+            </div>
+            
+            <div class="playback-controls">
+              <button class="control-btn" @click="skipBackward">
+                <svg class="icon" viewBox="0 0 24 24">
+                  <path d="M12 5v14l-10-7 10-7z" />
+                </svg>
+                -10s
+              </button>
+              
+              <button class="control-btn primary" @click="togglePlay">
+                <svg class="icon" viewBox="0 0 24 24">
+                  <path v-if="isPlaying" d="M6 4h4v16H6zm8 0h4v16h-4z" />
+                  <path v-else d="M8 5v14l11-7z" />
+                </svg>
+              </button>
+              
+              <button class="control-btn" @click="skipForward">
+                <svg class="icon" viewBox="0 0 24 24">
+                  <path d="M12 5v14l10-7-10-7z" />
+                </svg>
+                +10s
+              </button>
+            </div>
+            
+            <div class="speed-control">
+              <label>播放速度:</label>
+              <select v-model="playbackRate" @change="changePlaybackRate">
+                <option v-for="rate in playbackRates" :key="rate" :value="rate">
+                  {{ rate }}x
+                </option>
+              </select>
+            </div>
+          </div>
 
-        <!-- 录音预览 -->
-        <div v-if="audioUrl" class="audio-preview">
-          <audio :src="audioUrl" controls class="audio-player"></audio>
-          <div class="preview-controls">
-            <button class="primary-btn" @click="handleSave">保存录音</button>
-            <button class="secondary-btn" @click="handleRetry">重新录制</button>
+          <div class="preview-actions">
+            <button class="primary-btn" @click="handleSave">
+              <svg class="icon" viewBox="0 0 24 24">
+                <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
+              </svg>
+              保存录音
+            </button>
+            <button class="secondary-btn" @click="handleDownload">
+              <svg class="icon" viewBox="0 0 24 24">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+              </svg>
+              下载录音
+            </button>
+            <button class="secondary-btn" @click="handleRetry">
+              <svg class="icon" viewBox="0 0 24 24">
+                <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+              </svg>
+              重新录制
+            </button>
+            <button class="danger-btn" @click="handleDelete">
+              <svg class="icon" viewBox="0 0 24 24">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+              </svg>
+              删除录音
+            </button>
           </div>
         </div>
 
@@ -110,7 +184,7 @@
         </div>
 
         <!-- 快捷键提示 -->
-        <div class="shortcut-tips" v-if="isDeviceReady && !isRecording">
+        <div class="shortcut-tips" v-if="isDeviceReady && !isRecording && !isPreviewMode">
           <span>空格键: 开始/暂停录音</span>
           <span>ESC: 关闭窗口</span>
         </div>
@@ -307,10 +381,109 @@
   50% { opacity: 0.4; }
   100% { opacity: 0.7; }
 }
+
+.preview-mode {
+  .audio-player-container {
+    background: var(--secondary-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .audio-controls {
+    margin-bottom: 1rem;
+    
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      -webkit-appearance: none;
+      background: var(--border-color);
+      border-radius: 2px;
+      outline: none;
+      margin-bottom: 0.5rem;
+      
+      &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 12px;
+        height: 12px;
+        background: var(--accent-color);
+        border-radius: 50%;
+        cursor: pointer;
+      }
+    }
+    
+    .time-display {
+      display: flex;
+      justify-content: space-between;
+      font-family: monospace;
+      color: var(--secondary-text);
+    }
+  }
+  
+  .playback-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    
+    .control-btn {
+      &.primary {
+        background: var(--accent-color);
+        color: white;
+        
+        &:hover {
+          background: var(--accent-color-dark, var(--accent-color));
+        }
+      }
+    }
+  }
+  
+  .speed-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    
+    select {
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      background: var(--primary-bg);
+      color: var(--primary-text);
+    }
+  }
+}
+
+.preview-actions {
+  display: flex;
+  gap: 1rem;
+  
+  button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    
+    .icon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+  
+  .danger-btn {
+    background: #dc2626;
+    color: white;
+    
+    &:hover {
+      background: #b91c1c;
+    }
+  }
+}
 </style>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 
 // 只定义 emits
 const emit = defineEmits(['close', 'save'])
@@ -331,6 +504,13 @@ const isDeviceReady = ref(false)
 const isInitializing = ref(true)
 const isProcessing = ref(false)
 const shortcutEnabled = ref(true)
+const isPreviewMode = ref(false)
+const isPlaying = ref(false)
+const currentTime = ref(0)
+const duration = ref(0)
+const playbackRate = ref(1)
+const playbackRates = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
+const audioElement = ref(null)
 
 // 非响应式变量
 let mediaRecorder = null
@@ -642,6 +822,24 @@ const stopRecording = () => {
   isPaused.value = false
   stopTimer()
   stopVisualization()
+  
+  // 切换到预览模式
+  isPreviewMode.value = true
+  
+  // 初始化音频播放器
+  nextTick(() => {
+    audioElement.value = document.createElement('audio')
+    audioElement.value.src = audioUrl.value
+    audioElement.value.addEventListener('loadedmetadata', () => {
+      duration.value = Math.floor(audioElement.value.duration)
+    })
+    audioElement.value.addEventListener('timeupdate', () => {
+      currentTime.value = Math.floor(audioElement.value.currentTime)
+    })
+    audioElement.value.addEventListener('ended', () => {
+      isPlaying.value = false
+    })
+  })
 }
 
 // 重新录制
@@ -676,6 +874,60 @@ const toggleRecording = () => {
   } else {
     audioChunks = []
     startRecording()
+  }
+}
+
+// 音频播放控制方法
+const togglePlay = () => {
+  if (!audioElement.value) return
+  
+  if (isPlaying.value) {
+    audioElement.value.pause()
+  } else {
+    audioElement.value.play()
+  }
+  isPlaying.value = !isPlaying.value
+}
+
+const handleSeek = (event) => {
+  if (!audioElement.value) return
+  const time = Number(event.target.value)
+  audioElement.value.currentTime = time
+  currentTime.value = time
+}
+
+const skipBackward = () => {
+  if (!audioElement.value) return
+  audioElement.value.currentTime -= 10
+}
+
+const skipForward = () => {
+  if (!audioElement.value) return
+  audioElement.value.currentTime += 10
+}
+
+const changePlaybackRate = () => {
+  if (!audioElement.value) return
+  audioElement.value.playbackRate = playbackRate.value
+}
+
+// 下载录音
+const handleDownload = () => {
+  if (!audioUrl.value) return
+  
+  const a = document.createElement('a')
+  a.href = audioUrl.value
+  a.download = `recording_${new Date().getTime()}.${audioFormat.value.split('/')[1]}`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+}
+
+// 删除录音
+const handleDelete = () => {
+  if (confirm('确定要删除这段录音吗？')) {
+    cleanup()
+    isPreviewMode.value = false
   }
 }
 
