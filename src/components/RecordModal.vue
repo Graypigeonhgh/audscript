@@ -304,16 +304,33 @@ onBeforeUnmount(() => {
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  z-index: 1000;
+  padding-top: 80px;
+  backdrop-filter: blur(4px);
 }
 
 .modal-content {
   background: var(--primary-bg);
   border-radius: 12px;
+  padding: 1.5rem;
   width: 90%;
   max-width: 500px;
-  padding: 1.5rem;
+  box-shadow: var(--modal-shadow);
+  border: 1px solid var(--border-color);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modal-header {
