@@ -112,7 +112,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import RecordModal from './components/RecordModal.vue'
 import ImportModal from './components/ImportModal.vue'
@@ -129,7 +129,15 @@ const showUserMenu = ref(false)
 const showRecordModal = ref(false)
 const showImportModal = ref(false)
 const showPodcastModal = ref(false)
-const theme = ref('light')
+const theme = ref('dark')
+
+// 在组件挂载时检查本地存储的主题设置
+onMounted(() => {
+  // 获取本地存储的主题设置，如果没有则使用默认的dark主题
+  const savedTheme = localStorage.getItem('theme') || 'dark'
+  theme.value = savedTheme
+  document.documentElement.setAttribute('data-theme', savedTheme)
+})
 
 // 处理用户菜单
 const toggleUserMenu = () => {
@@ -190,6 +198,9 @@ const navigateToSettings = () => {
 // 切换主题
 const toggleTheme = () => {
   theme.value = theme.value === 'light' ? 'dark' : 'light'
+  // 保存主题设置到本地存储
+  localStorage.setItem('theme', theme.value)
+  document.documentElement.setAttribute('data-theme', theme.value)
 }
 
 // 处理录音保存
@@ -231,7 +242,7 @@ const handlePodcastImport = (podcastData) => {
   min-height: 100vh;
   background: var(--primary-bg);
   color: var(--primary-text);
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .navbar {
@@ -501,5 +512,13 @@ const handlePodcastImport = (podcastData) => {
 
 .logout-btn:hover {
   background: var(--border-color);
+}
+
+/* 所有使用主题变量的元素都添加过渡效果 */
+* {
+  transition: background-color 0.3s ease, 
+              color 0.3s ease, 
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
 }
 </style> 

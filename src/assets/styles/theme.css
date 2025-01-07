@@ -1,0 +1,46 @@
+:root {
+  /* 亮色主题变量 */
+  --primary-bg: #ffffff;
+  --secondary-bg: #f3f4f6;
+  --primary-text: #1f2937;
+  --secondary-text: #6b7280;
+  --accent-color: #3b82f6;
+  --border-color: #e5e7eb;
+  /* 其他亮色主题变量... */
+}
+
+/* 暗色主题变量 */
+[data-theme="dark"] {
+  --primary-bg: #1a1b1e;
+  --secondary-bg: #2a2b2e;
+  --primary-text: #e5e7eb;
+  --secondary-text: #9ca3af;
+  --accent-color: #60a5fa;
+  --border-color: #374151;
+  
+  /* 状态颜色 */
+  --success-color: #34d399;
+  --success-color-light: rgba(52, 211, 153, 0.1);
+  --error-color: #f87171;
+  --error-color-light: rgba(248, 113, 113, 0.1);
+  --warning-color: #fbbf24;
+  --warning-color-light: rgba(251, 191, 36, 0.1);
+  
+  /* 模态框背景 */
+  --modal-bg: #1a1b1e;
+  --modal-overlay: rgba(0, 0, 0, 0.75);
+  
+  /* 输入框样式 */
+  --input-bg: #2a2b2e;
+  --input-border: #374151;
+  --input-text: #e5e7eb;
+  --input-placeholder: #6b7280;
+  
+  /* 按钮样式 */
+  --button-hover: #374151;
+  --button-active: #4b5563;
+  
+  /* 滚动条样式 */
+  --scrollbar-track: #2a2b2e;
+  --scrollbar-thumb: #4b5563;
+} 
