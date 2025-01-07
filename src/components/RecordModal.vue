@@ -151,12 +151,6 @@
           </div>
 
           <div class="preview-actions">
-            <button class="primary-btn" @click="handleSave">
-              <svg class="icon" viewBox="0 0 24 24">
-                <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
-              </svg>
-              保存录音
-            </button>
             <button class="secondary-btn" @click="handleDownload">
               <svg class="icon" viewBox="0 0 24 24">
                 <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
@@ -553,16 +547,6 @@
         height: 20px;
       }
       
-      &.primary-btn {
-        background: var(--accent-color);
-        color: white;
-        
-        &:hover {
-          background: var(--accent-color-dark, var(--accent-color));
-          transform: translateY(-2px);
-        }
-      }
-      
       &.secondary-btn {
         background: var(--secondary-bg);
         color: var(--primary-text);
@@ -576,8 +560,6 @@
       &.danger-btn {
         background: rgba(220, 38, 38, 0.1);
         color: #dc2626;
-        grid-column: span 2;
-        width: 100%;
         
         &:hover {
           background: rgba(220, 38, 38, 0.15);
@@ -593,7 +575,7 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 
 // 只定义 emits
-const emit = defineEmits(['close', 'save'])
+const emit = defineEmits(['close'])
 
 // 响应式变量定义
 const visualizer = ref(null)
@@ -915,15 +897,6 @@ const stopRecording = () => {
     
     // 预加载音频
     audioElement.value.load()
-  })
-}
-
-// 保存录音
-const handleSave = () => {
-  emit('save', {
-    url: audioUrl.value,
-    duration: recordingTime.value,
-    format: audioFormat.value
   })
 }
 
