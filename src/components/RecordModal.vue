@@ -993,8 +993,19 @@ const handleDownload = () => {
 // 删除录音
 const handleDelete = () => {
   if (confirm('确定要删除这段录音吗？')) {
+    // 先暂停播放
+    if (audioElement.value) {
+      audioElement.value.pause()
+    }
+    
+    // 执行清理
     cleanup()
+    
+    // 重置界面状态
     isPreviewMode.value = false
+    isPlaying.value = false
+    currentTime.value = 0
+    duration.value = 0
   }
 }
 
@@ -1017,22 +1028,68 @@ onBeforeUnmount(() => {
 const cleanup = () => {
   stopTimer()
   stopVisualization()
+  
+  // 先停止录音
   if (isRecording.value) {
-    stopRecording()
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop()
+      mediaRecorder.stream.getTracks().forEach(track => track.stop())
+    }
+    isRecording.value = false
+    isPaused.value = false
   }
+
+  // 清理音频元素
+  if (audioElement.value) {
+    const audio = audioElement.value
+    
+    // 先暂停播放
+    audio.pause()
+    
+    // 存储原始事件处理函数的引用
+    const handleLoadedMetadata = () => {
+      duration.value = Math.floor(audio.duration)
+    }
+    
+    const handleTimeUpdate = () => {
+      currentTime.value = Math.floor(audio.currentTime)
+    }
+    
+    const handleEnded = () => {
+      isPlaying.value = false
+    }
+    
+    // 正确移除事件监听器
+    audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
+    audio.removeEventListener('timeupdate', handleTimeUpdate)
+    audio.removeEventListener('ended', handleEnded)
+    
+    // 清理音频源和引用
+    audio.src = ''
+    audioElement.value = null
+  }
+
+  // 清理音频URL
   if (audioUrl.value) {
     URL.revokeObjectURL(audioUrl.value)
     audioUrl.value = null
   }
+
+  // 清理音频上下文
   if (audioContext) {
-    audioContext.close()
+    audioContext.close().catch(console.error)
     audioContext = null
   }
-  if (audioElement.value) {
-    audioElement.value.pause()
-    audioElement.value.src = ''
-    audioElement.value = null
-  }
+
+  // 重置其他状态
+  recordingTime.value = 0
+  currentTime.value = 0
+  duration.value = 0
+  audioChunks = []
+  analyser = null
+  volumeLevel.value = 0
+  isPreviewMode.value = false
+  isPlaying.value = false
 }
 
 // 停止可视化
@@ -1061,5 +1118,36 @@ const getStatusText = () => {
     isPaused.value ? 'paused' : 
     'recording'
   )
+}
+
+// 添加音频事件处理函数
+const handleLoadedMetadata = () => {
+  if (audioElement.value) {
+    duration.value = Math.floor(audioElement.value.duration)
+  }
+}
+
+const handleTimeUpdate = () => {
+  if (audioElement.value) {
+    currentTime.value = Math.floor(audioElement.value.currentTime)
+  }
+}
+
+const handleEnded = () => {
+  isPlaying.value = false
+}
+
+// 修改音频初始化部分
+const initAudioElement = () => {
+  audioElement.value = new Audio()
+  audioElement.value.src = audioUrl.value
+  
+  // 添加事件监听器
+  audioElement.value.addEventListener('loadedmetadata', handleLoadedMetadata)
+  audioElement.value.addEventListener('timeupdate', handleTimeUpdate)
+  audioElement.value.addEventListener('ended', handleEnded)
+  
+  // 预加载音频
+  audioElement.value.load()
 }
 </script> 

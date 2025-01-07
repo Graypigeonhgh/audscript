@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import WorkspaceView from '@/views/WorkspaceView.vue'
 
 const routes = [
   {
@@ -21,6 +22,11 @@ const routes = [
     path: '/history',
     name: 'history',
     component: () => import('../views/HistoryView.vue')
+  },
+  {
+    path: '/workspace',
+    name: 'workspace',
+    component: WorkspaceView
   }
 ]
 
