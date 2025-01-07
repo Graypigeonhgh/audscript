@@ -38,27 +38,33 @@ const showPodcastModal = ref(false)
 
 <style scoped>
 .home {
-  padding: 2rem;
+  padding: 1.5rem;
+  min-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
 }
 
 .action-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
+  gap: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
+  padding-top: 2rem;
 }
 
 .card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem;
+  padding: 2rem 1.5rem;
   background: var(--primary-bg);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   transition: all 0.3s;
   cursor: pointer;
+  height: 100%;
+  min-height: 200px;
 }
 
 .card:hover {

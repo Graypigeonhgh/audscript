@@ -16,11 +16,11 @@
             type="url" 
             v-model="podcastUrl"
             placeholder="请输入播客链接"
-            class="form-input"
+            class="form-input podcast-input"
           />
         </div>
-        
-        <div class="podcast-preview" v-if="previewData">
+
+        <div class="podcast-preview">
           <img :src="previewData.cover" alt="播客封面" class="podcast-cover">
           <div class="podcast-info">
             <h3>{{ previewData.title }}</h3>
@@ -31,7 +31,6 @@
 
         <button 
           class="primary-btn" 
-          :disabled="!podcastUrl"
           @click="handleImport"
         >
           导入播客
@@ -46,43 +45,44 @@ import { ref } from 'vue'
 
 const emit = defineEmits(['close', 'import'])
 const podcastUrl = ref('')
-const previewData = ref(null)
-
-// Mock Data
-const mockPreviewData = {
-  cover: 'https://example.com/podcast-cover.jpg',
-  title: '示例播客标题',
+const previewData = ref({
+  cover: 'https://cdn.prod.website-files.com/657c03781f95ed6de7372282/662238209bf661a9c38bdefb_%E7%A7%91%E6%97%A9.png',
+  title: '科技早知道',
   description: '这是一个示例播客描述...',
   duration: '45:30'
-}
+})
 
 const handleImport = () => {
-  // TODO: 调用API处理播客导入
-  emit('import', { url: podcastUrl.value })
+  emit('import', { url: podcastUrl.value || 'mock-podcast-url' })
 }
-
-// 模拟获取播客预览信息
-setTimeout(() => {
-  previewData.value = mockPreviewData
-}, 1000)
 </script>
 
 <style lang="scss">
 @import '@/assets/styles/modal.scss';
 
+.podcast-input {
+  width: 85%;
+  margin: 0 auto 1.5rem;
+  text-align: center;
+  
+  &::placeholder {
+    text-align: center;
+  }
+}
+
 .podcast-preview {
   margin: 1rem 0;
-  padding: 1rem;
+  padding: 1.5rem;
   background: var(--secondary-bg);
-  border-radius: 8px;
+  border-radius: 12px;
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .podcast-cover {
   width: 80px;
   height: 80px;
-  border-radius: 4px;
+  border-radius: 8px;
   object-fit: cover;
 }
 
@@ -90,28 +90,23 @@ setTimeout(() => {
   flex: 1;
   
   h3 {
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.75rem 0;
     color: var(--primary-text);
+    font-size: 1.2rem;
   }
   
   p {
     margin: 0;
     color: var(--secondary-text);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
   }
 }
 
 .duration {
   display: block;
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
   font-size: 0.9rem;
   color: var(--secondary-text);
-}
-
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--primary-text);
-  font-weight: 500;
 }
 </style> 
