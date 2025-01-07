@@ -178,6 +178,27 @@
         </div>
       </div>
     </div>
+
+    <!-- 添加确认对话框 -->
+    <div v-if="showConfirmDialog" class="confirm-dialog-overlay">
+      <div class="confirm-dialog">
+        <div class="confirm-dialog-content">
+          <svg class="warning-icon" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+          </svg>
+          <h3>确认删除</h3>
+          <p>确定要删除这段录音吗？此操作无法撤销。</p>
+        </div>
+        <div class="confirm-dialog-actions">
+          <button class="cancel-btn" @click="showConfirmDialog = false">
+            取消
+          </button>
+          <button class="confirm-btn" @click="confirmDelete">
+            删除
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -569,6 +590,101 @@
     }
   }
 }
+
+// 添加确认对话框样式
+.confirm-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.confirm-dialog {
+  background: var(--primary-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: dialogSlideIn 0.2s ease-out;
+
+  .confirm-dialog-content {
+    text-align: center;
+    margin-bottom: 1.5rem;
+
+    .warning-icon {
+      width: 48px;
+      height: 48px;
+      fill: #f59e0b;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--primary-text);
+    }
+
+    p {
+      color: var(--secondary-text);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+  }
+
+  .confirm-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+
+    button {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &.cancel-btn {
+        background: var(--secondary-bg);
+        color: var(--primary-text);
+        border: none;
+
+        &:hover {
+          background: var(--border-color);
+        }
+      }
+
+      &.confirm-btn {
+        background: #dc2626;
+        color: white;
+        border: none;
+
+        &:hover {
+          background: #b91c1c;
+        }
+      }
+    }
+  }
+}
+
+@keyframes dialogSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 </style>
 
 <script setup>
@@ -600,6 +716,7 @@ const duration = ref(0)
 const playbackRate = ref(1)
 const playbackRates = [0.5, 0.75, 1, 1.25, 1.5, 2]
 const audioElement = ref(null)
+const showConfirmDialog = ref(false)
 
 // 非响应式变量
 let mediaRecorder = null
@@ -998,21 +1115,26 @@ const handleDownload = () => {
 
 // 删除录音
 const handleDelete = () => {
-  if (confirm('确定要删除这段录音吗？')) {
-    // 先暂停播放
-    if (audioElement.value) {
-      audioElement.value.pause()
-      isPlaying.value = false
-    }
-    
-    // 执行清理
-    cleanup()
-    
-    // 重置界面状态
-    isPreviewMode.value = false
-    currentTime.value = 0
-    duration.value = 0
+  showConfirmDialog.value = true
+}
+
+// 添加确认删除的处理函数
+const confirmDelete = () => {
+  showConfirmDialog.value = false
+  
+  // 先暂停播放
+  if (audioElement.value) {
+    audioElement.value.pause()
+    isPlaying.value = false
   }
+  
+  // 执行清理
+  cleanup()
+  
+  // 重置界面状态
+  isPreviewMode.value = false
+  currentTime.value = 0
+  duration.value = 0
 }
 
 // 组件挂载和卸载
