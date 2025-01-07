@@ -82,7 +82,7 @@
           </button>
         </div>
         
-        <button class="theme-btn" @click="toggleTheme">
+        <button class="theme-btn" @click="toggleTheme" :title="theme === 'dark' ? '切换到明亮模式' : '切换到暗黑模式'">
           <svg v-if="theme === 'dark'" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
           </svg>
@@ -343,21 +343,24 @@ const handlePodcastImport = (podcastData) => {
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .login-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  gap: 0.25rem;
+  padding: 0.3rem 0.5rem;
   background: var(--accent-color);
   color: white;
   border: none;
   border-radius: 6px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s;
+  height:45px;
+  min-width: 72px;
 }
 
 .login-btn:hover {
@@ -374,12 +377,12 @@ const handlePodcastImport = (podcastData) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 46px;
+  height: 46px;
   padding: 0;
   background: var(--hover-bg);
-  border: none;
-  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   color: var(--secondary-text);
   cursor: pointer;
   transition: all 0.3s;
@@ -388,11 +391,13 @@ const handlePodcastImport = (podcastData) => {
 .theme-btn:hover {
   color: var(--primary-text);
   background: var(--active-bg);
+  border-color: var(--accent-color);
+  transform: translateY(-1px);
 }
 
 .theme-icon {
-  width: 18px;
-  height: 18px;
+  width: 26px;
+  height: 26px;
 }
 
 .user-menu-trigger {
