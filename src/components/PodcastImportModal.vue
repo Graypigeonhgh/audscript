@@ -12,7 +12,6 @@
       
       <div class="modal-body">
         <div class="input-group">
-          <label>播客链接</label>
           <input 
             type="url" 
             v-model="podcastUrl"
