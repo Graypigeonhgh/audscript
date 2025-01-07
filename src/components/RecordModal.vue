@@ -879,23 +879,25 @@ const stopRecording = () => {
   
   // 初始化音频播放器
   nextTick(() => {
+    if (audioElement.value) {
+      // 先清理现有的音频元素
+      audioElement.value.pause()
+      audioElement.value.src = ''
+      audioElement.value.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      audioElement.value.removeEventListener('timeupdate', handleTimeUpdate)
+      audioElement.value.removeEventListener('ended', handleEnded)
+    }
+    
+    // 创建新的音频元素
     audioElement.value = new Audio()
+    
+    // 先绑定事件监听器
+    audioElement.value.addEventListener('loadedmetadata', handleLoadedMetadata)
+    audioElement.value.addEventListener('timeupdate', handleTimeUpdate)
+    audioElement.value.addEventListener('ended', handleEnded)
+    
+    // 最后设置音频源并加载
     audioElement.value.src = audioUrl.value
-    
-    // 添加事件监听器
-    audioElement.value.addEventListener('loadedmetadata', () => {
-      duration.value = Math.floor(audioElement.value.duration)
-    })
-    
-    audioElement.value.addEventListener('timeupdate', () => {
-      currentTime.value = Math.floor(audioElement.value.currentTime)
-    })
-    
-    audioElement.value.addEventListener('ended', () => {
-      isPlaying.value = false
-    })
-    
-    // 预加载音频
     audioElement.value.load()
   })
 }
@@ -920,22 +922,26 @@ const toggleRecording = () => {
 
 // 音频播放控制方法
 const togglePlay = () => {
-  if (!audioElement.value) return
+  if (!audioElement.value || !audioUrl.value) return
   
   try {
     if (isPlaying.value) {
       audioElement.value.pause()
     } else {
-      audioElement.value.play()
+      audioElement.value.play().catch(error => {
+        console.error('播放失败:', error)
+        errorMessage.value = '播放失败，请重试'
+      })
     }
     isPlaying.value = !isPlaying.value
   } catch (error) {
     console.error('播放控制失败:', error)
+    errorMessage.value = '播放控制失败，请重试'
   }
 }
 
 const handleSeek = (event) => {
-  if (!audioElement.value) return
+  if (!audioElement.value || !audioUrl.value) return
   
   try {
     const time = Number(event.target.value)
@@ -996,6 +1002,7 @@ const handleDelete = () => {
     // 先暂停播放
     if (audioElement.value) {
       audioElement.value.pause()
+      isPlaying.value = false
     }
     
     // 执行清理
@@ -1003,7 +1010,6 @@ const handleDelete = () => {
     
     // 重置界面状态
     isPreviewMode.value = false
-    isPlaying.value = false
     currentTime.value = 0
     duration.value = 0
   }
@@ -1043,31 +1049,23 @@ const cleanup = () => {
   if (audioElement.value) {
     const audio = audioElement.value
     
-    // 先暂停播放
-    audio.pause()
-    
-    // 存储原始事件处理函数的引用
-    const handleLoadedMetadata = () => {
-      duration.value = Math.floor(audio.duration)
-    }
-    
-    const handleTimeUpdate = () => {
-      currentTime.value = Math.floor(audio.currentTime)
-    }
-    
-    const handleEnded = () => {
-      isPlaying.value = false
-    }
-    
-    // 正确移除事件监听器
+    // 先移除事件监听器，避免触发不必要的事件
     audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
     audio.removeEventListener('timeupdate', handleTimeUpdate)
     audio.removeEventListener('ended', handleEnded)
+    
+    // 暂停播放并重置状态
+    audio.pause()
+    isPlaying.value = false
     
     // 清理音频源和引用
     audio.src = ''
     audioElement.value = null
   }
+
+  // 重置状态变量
+  currentTime.value = 0
+  duration.value = 0
 
   // 清理音频URL
   if (audioUrl.value) {
@@ -1083,13 +1081,10 @@ const cleanup = () => {
 
   // 重置其他状态
   recordingTime.value = 0
-  currentTime.value = 0
-  duration.value = 0
   audioChunks = []
   analyser = null
   volumeLevel.value = 0
   isPreviewMode.value = false
-  isPlaying.value = false
 }
 
 // 停止可视化
