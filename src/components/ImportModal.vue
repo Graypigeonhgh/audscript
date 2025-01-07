@@ -112,6 +112,19 @@ const formatFileSize = (bytes) => {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
+  color: var(--primary-text);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.close-btn:hover {
+  background: var(--secondary-bg);
+  color: var(--accent-color);
 }
 
 .upload-area {
