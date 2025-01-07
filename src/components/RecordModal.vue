@@ -30,49 +30,42 @@
         </div>
 
         <!-- 预览区域 -->
-        <div v-if="audioUrl" class="preview-section">
-          <audio ref="audioPreview" :src="audioUrl" controls class="audio-preview"></audio>
-        </div>
-        
-        <div class="controls">
-          <!-- 暂停/继续按钮 -->
-          <button 
-            v-if="isRecording"
-            class="control-btn"
-            @click="togglePause"
-            :title="isPaused ? '继续' : '暂停'"
-          >
-            {{ isPaused ? '▶️' : '⏸️' }}
-          </button>
+        <audio v-if="audioUrl" ref="audioPreview" :src="audioUrl" controls class="audio-preview"></audio>
+      </div>
 
-          <!-- 录音按钮 -->
-          <button 
-            class="record-btn"
-            :class="{ 'recording': isRecording }"
-            @click="toggleRecording"
-          >
-            {{ isRecording ? '停止' : '开始录音' }}
-          </button>
+      <!-- 控制按钮区域 -->
+      <div class="controls">
+        <button 
+          v-if="isRecording"
+          class="control-btn"
+          @click="togglePause"
+        >
+          {{ isPaused ? '▶️' : '⏸️' }}
+        </button>
 
-          <!-- 取消按钮 -->
-          <button 
-            v-if="isRecording"
-            class="control-btn"
-            @click="cancelRecording"
-            title="取消录音"
-          >
-            🗑️
-          </button>
+        <button 
+          class="record-btn"
+          :class="{ 'recording': isRecording }"
+          @click="toggleRecording"
+        >
+          {{ isRecording ? '停止' : '开始录音' }}
+        </button>
 
-          <!-- 保存按钮 -->
-          <button
-            v-if="audioUrl && !isRecording"
-            class="save-btn"
-            @click="handleSave"
-          >
-            保存录音
-          </button>
-        </div>
+        <button 
+          v-if="isRecording"
+          class="control-btn"
+          @click="cancelRecording"
+        >
+          🗑️
+        </button>
+
+        <button
+          v-if="audioUrl && !isRecording"
+          class="save-btn"
+          @click="handleSave"
+        >
+          保存录音
+        </button>
       </div>
     </div>
   </div>
@@ -304,40 +297,41 @@ onBeforeUnmount(() => {
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding-top: 80px;
   backdrop-filter: blur(4px);
 }
 
 .modal-content {
   background: var(--primary-bg);
   border-radius: 12px;
-  padding: 1.5rem;
   width: 90%;
-  max-width: 500px;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
   box-shadow: var(--modal-shadow);
   border: 1px solid var(--border-color);
-  animation: modalSlideIn 0.3s ease-out;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  padding: 1rem;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.modal-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .close-btn {
@@ -367,19 +361,19 @@ onBeforeUnmount(() => {
 
 .controls {
   display: flex;
+  gap: 0.75rem;
   justify-content: center;
-  align-items: center;
-  gap: 1rem;
+  margin-top: 0.75rem;
+  padding: 0;
 }
 
 .record-btn {
-  padding: 1rem 2rem;
-  border-radius: 50px;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
   border: none;
   background: var(--accent-color);
   color: white;
   cursor: pointer;
-  transition: background 0.2s;
 }
 
 .record-btn.recording {
@@ -393,17 +387,15 @@ onBeforeUnmount(() => {
 }
 
 .control-btn {
-  background: var(--secondary-bg);
-  border: none;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
+  border: none;
+  background: var(--secondary-bg);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
-  transition: all 0.3s;
 }
 
 .control-btn:hover {
@@ -424,19 +416,10 @@ onBeforeUnmount(() => {
 }
 
 .audio-visualizer {
-  width: 100%;
-  height: 120px;
-  margin-bottom: 1rem;
+  height: 80px;
   background: var(--primary-bg);
   border-radius: 8px;
   border: 1px solid var(--border-color);
-}
-
-.preview-section {
-  margin: 1rem 0;
-  padding: 1rem;
-  background: var(--secondary-bg);
-  border-radius: 8px;
 }
 
 .audio-preview {
@@ -444,13 +427,12 @@ onBeforeUnmount(() => {
 }
 
 .save-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
   background: var(--accent-color);
   color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.3s;
 }
 
 .save-btn:hover {
