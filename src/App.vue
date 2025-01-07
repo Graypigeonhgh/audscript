@@ -109,6 +109,7 @@ const handleExportTranscription = (data) => {
   min-height: 100vh;
   background: var(--primary-bg);
   color: var(--primary-text);
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .navbar {
@@ -118,6 +119,8 @@ const handleExportTranscription = (data) => {
   padding: 1rem 2rem;
   border-bottom: 1px solid var(--border-color);
   background: var(--secondary-bg);
+  backdrop-filter: blur(10px);
+  transition: background-color 0.3s;
 }
 
 .logo h1 {
@@ -127,12 +130,18 @@ const handleExportTranscription = (data) => {
 }
 
 .theme-toggle {
-  background: none;
-  border: none;
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
   font-size: 1.2rem;
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+  background: var(--accent-color);
 }
 
 .main-content {
@@ -158,12 +167,14 @@ const handleExportTranscription = (data) => {
   border-radius: 12px;
   padding: 2rem;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s;
+  border: 1px solid var(--border-color);
 }
 
 .card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-color: var(--accent-color);
 }
 
 .card-icon {
@@ -184,5 +195,28 @@ const handleExportTranscription = (data) => {
 .workspace-section {
   flex: 1;
   overflow: hidden;
+}
+
+:deep(*) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) var(--secondary-bg);
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0.75rem 1rem;
+  }
+  
+  .main-content {
+    padding: 1rem;
+  }
+  
+  .action-cards {
+    gap: 1rem;
+  }
+  
+  .card {
+    padding: 1.5rem;
+  }
 }
 </style> 
