@@ -712,8 +712,10 @@ const startRecording = async () => {
     isRecording.value = true
     startTimer()
     
-    // 开始可视化
-    requestAnimationFrame(draw)
+    // 开始可视化（只在非暂停状态下）
+    if (!isPaused.value) {
+      requestAnimationFrame(draw)
+    }
     
   } catch (error) {
     console.error('开始录音失败:', error)
@@ -740,9 +742,8 @@ const draw = () => {
   
   // 创建渐变
   const gradient = ctx.createLinearGradient(0, 0, width, 0)
-  // 使用具体的 RGB 值而不是 CSS 变量
   gradient.addColorStop(0, 'rgb(99, 102, 241)') // 主题色
-  gradient.addColorStop(1, 'rgb(168, 85, 247)') // 渐变色
+  gradient.addColorStop(1, isPaused.value ? 'rgb(148, 163, 184)' : 'rgb(168, 85, 247)') // 暂停时使用灰色
   
   ctx.fillStyle = gradient
   
@@ -753,7 +754,12 @@ const draw = () => {
   
   // 绘制频谱
   for (let i = 0; i < bufferLength; i++) {
-    const barHeight = (dataArray[i] / 255) * height
+    let barHeight = (dataArray[i] / 255) * height
+    
+    // 如果暂停，显示静止的频谱
+    if (isPaused.value) {
+      barHeight = Math.min(barHeight, height * 0.1) // 限制暂停时的频谱高度
+    }
     
     ctx.fillRect(x, height - barHeight, barWidth, barHeight)
     x += barWidth + barSpacing
@@ -761,9 +767,9 @@ const draw = () => {
   
   // 更新音量电平
   const average = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength
-  volumeLevel.value = Math.min(100, (average / 255) * 100)
+  volumeLevel.value = isPaused.value ? 0 : Math.min(100, (average / 255) * 100)
   
-  // 请求下一帧动画
+  // 只在非暂停状态下继续动画
   if (isRecording.value && !isPaused.value) {
     requestAnimationFrame(draw)
   }
@@ -824,9 +830,12 @@ const togglePause = () => {
     if (isPaused.value) {
       mediaRecorder.resume()
       isPaused.value = false
+      // 恢复录音时重新开始动画
+      requestAnimationFrame(draw)
     } else {
       mediaRecorder.pause()
       isPaused.value = true
+      // 暂停时不需要额外处理，动画会自动停止
     }
   } catch (error) {
     console.error('暂停/继续录音失败:', error)
@@ -866,29 +875,30 @@ const updateStatus = (status) => {
 // 停止录音
 const stopRecording = () => {
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    // 先停止录音
     mediaRecorder.stop()
-    // 添加录音结束的处理
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(audioChunks, { type: audioFormat.value })
-      if (audioUrl.value) {
-        URL.revokeObjectURL(audioUrl.value)
-      }
-      audioUrl.value = URL.createObjectURL(blob)
-    }
     mediaRecorder.stream.getTracks().forEach(track => track.stop())
   }
+  
   isRecording.value = false
   isPaused.value = false
   stopTimer()
   stopVisualization()
+  
+  // 创建 Blob 并设置 URL
+  const blob = new Blob(audioChunks, { type: audioFormat.value })
+  if (audioUrl.value) {
+    URL.revokeObjectURL(audioUrl.value)
+  }
+  audioUrl.value = URL.createObjectURL(blob)
   
   // 切换到预览模式
   isPreviewMode.value = true
   
   // 初始化音频播放器
   nextTick(() => {
-    // 确保先创建新的音频元素
-    audioElement.value = document.createElement('audio')
+    audioElement.value = new Audio()
+    audioElement.value.src = audioUrl.value
     
     // 添加事件监听器
     audioElement.value.addEventListener('loadedmetadata', () => {
@@ -896,17 +906,12 @@ const stopRecording = () => {
     })
     
     audioElement.value.addEventListener('timeupdate', () => {
-      if (audioElement.value) {
-        currentTime.value = Math.floor(audioElement.value.currentTime)
-      }
+      currentTime.value = Math.floor(audioElement.value.currentTime)
     })
     
     audioElement.value.addEventListener('ended', () => {
       isPlaying.value = false
     })
-    
-    // 最后设置音频源
-    audioElement.value.src = audioUrl.value
     
     // 预加载音频
     audioElement.value.load()
@@ -942,7 +947,7 @@ const toggleRecording = () => {
 
 // 音频播放控制方法
 const togglePlay = () => {
-  if (!audioElement.value || !audioElement.value.src) return
+  if (!audioElement.value) return
   
   try {
     if (isPlaying.value) {
@@ -957,7 +962,8 @@ const togglePlay = () => {
 }
 
 const handleSeek = (event) => {
-  if (!audioElement.value || !audioElement.value.src) return
+  if (!audioElement.value) return
+  
   try {
     const time = Number(event.target.value)
     audioElement.value.currentTime = time
@@ -968,7 +974,8 @@ const handleSeek = (event) => {
 }
 
 const skipBackward = () => {
-  if (!audioElement.value || !audioElement.value.src) return
+  if (!audioElement.value) return
+  
   try {
     const newTime = Math.max(0, audioElement.value.currentTime - 10)
     audioElement.value.currentTime = newTime
@@ -978,7 +985,8 @@ const skipBackward = () => {
 }
 
 const skipForward = () => {
-  if (!audioElement.value || !audioElement.value.src) return
+  if (!audioElement.value) return
+  
   try {
     const newTime = Math.min(audioElement.value.duration, audioElement.value.currentTime + 10)
     audioElement.value.currentTime = newTime
@@ -988,7 +996,8 @@ const skipForward = () => {
 }
 
 const changePlaybackRate = () => {
-  if (!audioElement.value || !audioElement.value.src) return
+  if (!audioElement.value) return
+  
   try {
     audioElement.value.playbackRate = playbackRate.value
   } catch (error) {
@@ -1061,8 +1070,12 @@ const stopVisualization = () => {
   }
   
   if (audioContext) {
-    audioContext.close()
+    audioContext.close().catch(console.error)
     audioContext = null
+  }
+  
+  if (analyser) {
+    analyser = null
   }
   
   volumeLevel.value = 0
