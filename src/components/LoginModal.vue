@@ -2,9 +2,7 @@
   <div class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="header-title">
-          <h2>{{ isLogin ? '登录' : '注册' }}</h2>
-        </div>
+        <h2>{{ isLogin ? '登录' : '注册' }}</h2>
         <button class="close-btn" @click="$emit('close')">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -44,13 +42,13 @@
             />
           </div>
           
-          <button type="submit" class="submit-btn">
+          <button type="submit" class="primary-btn">
             {{ isLogin ? '登录' : '注册' }}
           </button>
         </form>
         
         <div class="form-footer">
-          <button class="switch-btn" @click="isLogin = !isLogin">
+          <button class="text-btn" @click="isLogin = !isLogin">
             {{ isLogin ? '没有账号？去注册' : '已有账号？去登录' }}
           </button>
         </div>
@@ -118,156 +116,33 @@ const handleSubmit = async () => {
 }
 </script>
 
-<style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(8px);
-  animation: fadeIn 0.3s ease-out;
-}
+<style lang="scss">
+@import '@/assets/styles/modal.scss';
 
-.modal-content {
-  width: 90%;
-  max-width: 400px;
-  padding: 2rem;
-  background: var(--primary-bg);
-  border-radius: 12px;
-  box-shadow: var(--modal-shadow);
-  border: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.modal-header {
-  width: 100%;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.header-title {
-  text-align: center;
-}
-
-.header-title h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: var(--primary-text);
-}
-
-.close-btn {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  background: none;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--secondary-text);
-  transition: all 0.3s ease;
-}
-
-.close-btn:hover {
-  background: var(--hover-bg);
-  color: var(--primary-text);
-}
-
-.icon {
-  width: 20px;
-  height: 20px;
-}
-
-.modal-body {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
+/* 只保留特定于登录模态框的样式 */
 form {
   width: 85%;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 1.5rem;
 }
 
-.input-group {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-.form-input {
-  width: 100%;
-  height: 46px;
-  padding: 0 1.25rem;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background: var(--secondary-bg);
-  color: var(--primary-text);
-  font-size: 0.95rem;
-  text-align: left;
-  transition: all 0.3s ease;
-}
-
-.form-input:focus {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb), 0.1);
-}
-
-.submit-btn {
-  width: 100%;
-  height: 48px;
-  margin-top: 0.5rem;
-  background: var(--accent-color);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--hover-shadow);
-}
-
 .form-footer {
-  width: 100%;
   margin-top: 1.5rem;
   text-align: center;
 }
 
-.switch-btn {
+.text-btn {
   background: none;
   border: none;
   color: var(--accent-color);
   cursor: pointer;
   padding: 0.5rem;
-}
-
-.switch-btn:hover {
-  text-decoration: underline;
+  font-size: 0.95rem;
+  
+  &:hover {
+    text-decoration: underline;
+  }
 }
 </style> 

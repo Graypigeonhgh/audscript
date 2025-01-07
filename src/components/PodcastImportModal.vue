@@ -3,7 +3,11 @@
     <div class="modal-content">
       <div class="modal-header">
         <h2>导入播客</h2>
-        <button class="close-btn" @click="$emit('close')">×</button>
+        <button class="close-btn" @click="$emit('close')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
       
       <div class="modal-body">
@@ -13,7 +17,7 @@
             type="url" 
             v-model="podcastUrl"
             placeholder="请输入播客链接"
-            class="url-input"
+            class="form-input"
           />
         </div>
         
@@ -27,7 +31,7 @@
         </div>
 
         <button 
-          class="import-btn" 
+          class="primary-btn" 
           :disabled="!podcastUrl"
           @click="handleImport"
         >
@@ -64,61 +68,8 @@ setTimeout(() => {
 }, 1000)
 </script>
 
-<style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
-  background: var(--primary-bg);
-  border-radius: 12px;
-  width: 90%;
-  max-width: 500px;
-  padding: 1.5rem;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--primary-text);
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.3s;
-}
-
-.input-group {
-  margin-bottom: 1rem;
-}
-
-.url-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: var(--secondary-bg);
-  color: var(--primary-text);
-}
+<style lang="scss">
+@import '@/assets/styles/modal.scss';
 
 .podcast-preview {
   margin: 1rem 0;
@@ -138,16 +89,17 @@ setTimeout(() => {
 
 .podcast-info {
   flex: 1;
-}
-
-.podcast-info h3 {
-  margin: 0 0 0.5rem 0;
-}
-
-.podcast-info p {
-  margin: 0;
-  color: var(--secondary-text);
-  font-size: 0.9rem;
+  
+  h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--primary-text);
+  }
+  
+  p {
+    margin: 0;
+    color: var(--secondary-text);
+    font-size: 0.9rem;
+  }
 }
 
 .duration {
@@ -157,19 +109,10 @@ setTimeout(() => {
   color: var(--secondary-text);
 }
 
-.import-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background: var(--accent-color);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.import-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--primary-text);
+  font-weight: 500;
 }
 </style> 
