@@ -3,15 +3,35 @@
     <div class="modal-content">
       <div class="modal-header">
         <h2>录音</h2>
-        <button class="close-btn" @click="$emit('close')">×</button>
+        <button class="close-btn" @click="handleClose">×</button>
       </div>
       
       <div class="modal-body">
+        <!-- 音频可视化区域 -->
+        <canvas ref="visualizer" class="audio-visualizer"></canvas>
+        
         <div class="record-status">
           <div class="status-indicator" :class="{ 'recording': isRecording }">
             {{ isRecording ? (isPaused ? '已暂停' : '录音中...') : '准备就绪' }}
             <span class="timer" v-if="isRecording">{{ formatTime(recordingTime) }}</span>
           </div>
+        </div>
+        
+        <!-- 录音设置 -->
+        <div class="settings" v-if="!isRecording">
+          <div class="setting-item">
+            <label>输入设备</label>
+            <select v-model="selectedDevice" class="device-select">
+              <option v-for="device in audioDevices" :key="device.deviceId" :value="device.deviceId">
+                {{ device.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 预览区域 -->
+        <div v-if="audioUrl" class="preview-section">
+          <audio ref="audioPreview" :src="audioUrl" controls class="audio-preview"></audio>
         </div>
         
         <div class="controls">
@@ -43,6 +63,15 @@
           >
             🗑️
           </button>
+
+          <!-- 保存按钮 -->
+          <button
+            v-if="audioUrl && !isRecording"
+            class="save-btn"
+            @click="handleSave"
+          >
+            保存录音
+          </button>
         </div>
       </div>
     </div>
@@ -50,20 +79,100 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 const emit = defineEmits(['close', 'save'])
 const isRecording = ref(false)
 const isPaused = ref(false)
 const recordingTime = ref(0)
+const audioUrl = ref(null)
+const visualizer = ref(null)
+const audioDevices = ref([])
+const selectedDevice = ref('')
 let timer = null
 let mediaRecorder = null
 let audioChunks = []
+let audioContext = null
+let analyser = null
+let animationFrame = null
+
+// 获取音频设备列表
+const getAudioDevices = async () => {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices()
+    audioDevices.value = devices.filter(device => device.kind === 'audioinput')
+    if (audioDevices.value.length > 0) {
+      selectedDevice.value = audioDevices.value[0].deviceId
+    }
+  } catch (err) {
+    console.error('获取音频设备失败:', err)
+  }
+}
+
+// 初始化音频可视化
+const initAudioVisualizer = (stream) => {
+  if (!visualizer.value) return
+  
+  audioContext = new (window.AudioContext || window.webkitAudioContext)()
+  analyser = audioContext.createAnalyser()
+  const source = audioContext.createMediaStreamSource(stream)
+  source.connect(analyser)
+  
+  analyser.fftSize = 2048
+  const bufferLength = analyser.frequencyBinCount
+  const dataArray = new Uint8Array(bufferLength)
+  const canvas = visualizer.value
+  const ctx = canvas.getContext('2d')
+  
+  const draw = () => {
+    const width = canvas.width
+    const height = canvas.height
+    
+    animationFrame = requestAnimationFrame(draw)
+    analyser.getByteTimeDomainData(dataArray)
+    
+    ctx.fillStyle = 'var(--primary-bg)'
+    ctx.fillRect(0, 0, width, height)
+    ctx.lineWidth = 2
+    ctx.strokeStyle = isRecording.value ? 'var(--accent-color)' : 'var(--secondary-text)'
+    ctx.beginPath()
+    
+    const sliceWidth = width / bufferLength
+    let x = 0
+    
+    for (let i = 0; i < bufferLength; i++) {
+      const v = dataArray[i] / 128.0
+      const y = v * height / 2
+      
+      if (i === 0) {
+        ctx.moveTo(x, y)
+      } else {
+        ctx.lineTo(x, y)
+      }
+      x += sliceWidth
+    }
+    
+    ctx.lineTo(width, height / 2)
+    ctx.stroke()
+  }
+  
+  draw()
+}
 
 const toggleRecording = async () => {
   if (!isRecording.value) {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      if (audioContext && audioContext.state !== 'closed') {
+        await audioContext.close()
+      }
+      audioContext = null
+      
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          deviceId: selectedDevice.value ? { exact: selectedDevice.value } : undefined
+        }
+      })
+      
       mediaRecorder = new MediaRecorder(stream)
       audioChunks = []
       
@@ -73,7 +182,10 @@ const toggleRecording = async () => {
       
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/wav' })
-        emit('save', audioBlob)
+        if (audioUrl.value) {
+          URL.revokeObjectURL(audioUrl.value)
+        }
+        audioUrl.value = URL.createObjectURL(audioBlob)
       }
       
       mediaRecorder.start()
@@ -94,8 +206,9 @@ const stopRecording = () => {
     mediaRecorder.stream.getTracks().forEach(track => track.stop())
   }
   isRecording.value = false
+  isPaused.value = false
   stopTimer()
-  emit('close')
+  stopVisualization()
 }
 
 const togglePause = () => {
@@ -114,7 +227,27 @@ const cancelRecording = () => {
     mediaRecorder.stream.getTracks().forEach(track => track.stop())
   }
   isRecording.value = false
+  isPaused.value = false
+  if (audioUrl.value) {
+    URL.revokeObjectURL(audioUrl.value)
+    audioUrl.value = null
+  }
   stopTimer()
+  stopVisualization()
+  audioChunks = []
+}
+
+const handleSave = () => {
+  if (audioUrl.value) {
+    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' })
+    emit('save', audioBlob)
+  }
+}
+
+const handleClose = () => {
+  if (isRecording.value) {
+    cancelRecording()
+  }
   emit('close')
 }
 
@@ -126,7 +259,18 @@ const startTimer = () => {
 
 const stopTimer = () => {
   clearInterval(timer)
-  recordingTime.value = 0
+}
+
+const stopVisualization = () => {
+  if (animationFrame) {
+    cancelAnimationFrame(animationFrame)
+    animationFrame = null
+  }
+  
+  if (audioContext && audioContext.state !== 'closed') {
+    audioContext.close()
+    audioContext = null
+  }
 }
 
 const formatTime = (seconds) => {
@@ -135,15 +279,20 @@ const formatTime = (seconds) => {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
-const initAudioVisualizer = (stream) => {
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-  const analyser = audioContext.createAnalyser()
-  const source = audioContext.createMediaStreamSource(stream)
-  source.connect(analyser)
-  
-  // 这里可以添加可视化的具体实现
-  console.log('音频可视化初始化完成')
-}
+onMounted(() => {
+  getAudioDevices()
+})
+
+onBeforeUnmount(() => {
+  if (isRecording.value) {
+    cancelRecording()
+  } else {
+    stopVisualization()
+  }
+  if (audioUrl.value) {
+    URL.revokeObjectURL(audioUrl.value)
+  }
+})
 </script>
 
 <style scoped>
@@ -255,5 +404,59 @@ const initAudioVisualizer = (stream) => {
 .status-indicator.recording {
   background: #dc262620;
   color: #dc2626;
+}
+
+.audio-visualizer {
+  width: 100%;
+  height: 120px;
+  margin-bottom: 1rem;
+  background: var(--primary-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.preview-section {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--secondary-bg);
+  border-radius: 8px;
+}
+
+.audio-preview {
+  width: 100%;
+}
+
+.save-btn {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.save-btn:hover {
+  opacity: 0.9;
+}
+
+.settings {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--secondary-bg);
+  border-radius: 8px;
+}
+
+.setting-item {
+  margin-bottom: 0.5rem;
+}
+
+.device-select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--primary-bg);
+  color: var(--primary-text);
 }
 </style> 
