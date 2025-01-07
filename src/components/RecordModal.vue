@@ -1,6 +1,6 @@
 <template>
-  <div class="modal-overlay">
-    <div class="modal-content">
+  <div class="modal-overlay" @click="handleModalClick">
+    <div class="modal-content" @click.stop>
       <div class="modal-header">
         <h2>{{ isPreviewMode ? '录音预览' : '录音' }}</h2>
         <button class="close-btn" @click="handleClose">
@@ -167,7 +167,7 @@
         </div>
 
         <!-- 错误提示 -->
-        <div v-if="errorMessage" class="error-message">
+        <div v-if="errorMessage" class="error-message" @click="errorMessage = ''">
           {{ errorMessage }}
         </div>
 
@@ -685,6 +685,65 @@
     transform: translateY(0);
   }
 }
+
+/* 添加错误消息样式 */
+.error-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--error-color-light);
+  color: var(--error-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* 确保音频控件样式正确 */
+.audio-player {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.audio-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.playback-button {
+  background: none;
+  border: none;
+  color: var(--primary-text);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.playback-button:hover {
+  background: var(--secondary-bg);
+}
+
+.playback-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 </style>
 
 <script setup>
@@ -979,7 +1038,6 @@ const updateStatus = (status) => {
 // 停止录音
 const stopRecording = () => {
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    // 先停止录音
     mediaRecorder.stop()
     mediaRecorder.stream.getTracks().forEach(track => track.stop())
   }
@@ -999,28 +1057,9 @@ const stopRecording = () => {
   // 切换到预览模式
   isPreviewMode.value = true
   
-  // 初始化音频播放器
+  // 使用 nextTick 确保 DOM 更新后再初始化音频
   nextTick(() => {
-    if (audioElement.value) {
-      // 先清理现有的音频元素
-      audioElement.value.pause()
-      audioElement.value.src = ''
-      audioElement.value.removeEventListener('loadedmetadata', handleLoadedMetadata)
-      audioElement.value.removeEventListener('timeupdate', handleTimeUpdate)
-      audioElement.value.removeEventListener('ended', handleEnded)
-    }
-    
-    // 创建新的音频元素
-    audioElement.value = new Audio()
-    
-    // 先绑定事件监听器
-    audioElement.value.addEventListener('loadedmetadata', handleLoadedMetadata)
-    audioElement.value.addEventListener('timeupdate', handleTimeUpdate)
-    audioElement.value.addEventListener('ended', handleEnded)
-    
-    // 最后设置音频源并加载
-    audioElement.value.src = audioUrl.value
-    audioElement.value.load()
+    initAudioElement()
   })
 }
 
@@ -1261,6 +1300,15 @@ const handleEnded = () => {
 
 // 修改音频初始化部分
 const initAudioElement = () => {
+  // 如果已存在音频元素，先清理
+  if (audioElement.value) {
+    audioElement.value.pause()
+    audioElement.value.removeEventListener('loadedmetadata', handleLoadedMetadata)
+    audioElement.value.removeEventListener('timeupdate', handleTimeUpdate)
+    audioElement.value.removeEventListener('ended', handleEnded)
+    audioElement.value.removeEventListener('error', handleAudioError)
+  }
+
   audioElement.value = new Audio()
   audioElement.value.src = audioUrl.value
   
@@ -1268,6 +1316,10 @@ const initAudioElement = () => {
   audioElement.value.addEventListener('loadedmetadata', handleLoadedMetadata)
   audioElement.value.addEventListener('timeupdate', handleTimeUpdate)
   audioElement.value.addEventListener('ended', handleEnded)
+  audioElement.value.addEventListener('error', handleAudioError)
+  
+  // 设置音频格式
+  audioElement.value.type = audioFormat.value
   
   // 预加载音频
   audioElement.value.load()
@@ -1334,4 +1386,54 @@ const stopStreamRecognition = () => {
 onUnmounted(() => {
   stopStreamRecognition()
 })
+
+// 添加错误消息自动消失的逻辑
+const showError = (message) => {
+  errorMessage.value = message
+  // 3秒后自动清除错误消息
+  setTimeout(() => {
+    errorMessage.value = ''
+  }, 3000)
+}
+
+// 修改音频播放相关的处理逻辑
+const handlePlayback = async () => {
+  if (!audioElement.value) return
+  
+  try {
+    if (isPlaying.value) {
+      await audioElement.value.pause()
+      isPlaying.value = false
+    } else {
+      // 尝试播放前先加载音频
+      try {
+        await audioElement.value.load()
+        const playPromise = audioElement.value.play()
+        if (playPromise !== undefined) {
+          await playPromise
+          isPlaying.value = true
+        }
+      } catch (err) {
+        console.error('音频播放失败:', err)
+        showError('音频播放失败，请重试')
+      }
+    }
+  } catch (err) {
+    console.error('音频控制失败:', err)
+    showError('音频控制失败，请重试')
+  }
+}
+
+// 添加音频错误处理
+const handleAudioError = (event) => {
+  console.error('音频加载失败:', event)
+  showError('音频加载失败，请重试')
+}
+
+// 添加点击事件处理，清除错误消息
+const handleModalClick = () => {
+  if (errorMessage.value) {
+    errorMessage.value = ''
+  }
+}
 </script> 
