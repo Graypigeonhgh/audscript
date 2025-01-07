@@ -391,6 +391,7 @@
       .progress-bar {
         width: 100%;
         height: 8px;
+        appearance: none;
         -webkit-appearance: none;
         background: rgba(var(--accent-color-rgb), 0.1);
         border-radius: 4px;
