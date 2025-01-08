@@ -57,6 +57,11 @@ const duration = ref(0)
 const volume = ref(1)
 const progress = ref(0)
 
+const handleError = (error) => {
+  console.error('音频播放错误:', error)
+  emit('error', '音频加载失败，请检查文件格式是否正确')
+}
+
 onMounted(() => {
   audio.src = props.audioUrl
   audio.addEventListener('timeupdate', updateProgress)
@@ -66,10 +71,12 @@ onMounted(() => {
   audio.addEventListener('ended', () => {
     isPlaying.value = false
   })
+  audio.addEventListener('error', handleError)
 })
 
 onUnmounted(() => {
   audio.removeEventListener('timeupdate', updateProgress)
+  audio.removeEventListener('error', handleError)
   audio.pause()
 })
 

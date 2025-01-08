@@ -35,7 +35,6 @@ export const audioApi = {
         
         sse.onmessage = (event) => {
           const data = JSON.parse(event.data)
-          // 处理实时识别结果
           console.log('实时识别结果:', data)
         }
         

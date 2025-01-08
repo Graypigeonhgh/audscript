@@ -50,12 +50,20 @@
       @import="handlePodcastImport"
     />
 
+    <!-- 添加登录模态框 -->
+    <LoginModal 
+      v-if="showLoginModal"
+      @close="showLoginModal = false"
+      @login="handleLogin"
+    />
+
     <!-- 工作区 -->
     <section v-if="currentAudio" class="workspace-section">
       <WorkspaceView
         :audio-url="currentAudio.url"
         :audio-name="currentAudio.name"
         :status="currentAudio.status"
+        :initial-transcription="currentAudio.transcription"
         @back="currentAudio = null"
         @save="handleSaveTranscription"
         @export="handleExportTranscription"
@@ -66,15 +74,29 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import RecordModal from '@/components/RecordModal.vue'
 import ImportModal from '@/components/ImportModal.vue'
 import WorkspaceView from '@/components/WorkspaceView.vue'
 import PodcastImportModal from '@/components/PodcastImportModal.vue'
+import LoginModal from '@/components/LoginModal.vue'
 
+const router = useRouter()
+const showLoginModal = ref(false)
 const currentAudio = ref(null)
 const showRecordModal = ref(false)
 const showImportModal = ref(false)
 const showPodcastModal = ref(false)
+
+// 检查登录状态
+const checkLogin = () => {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    showLoginModal.value = true
+    return false
+  }
+  return true
+}
 
 // 处理录音保存
 const handleSaveRecording = (audioData) => {
@@ -84,10 +106,21 @@ const handleSaveRecording = (audioData) => {
 }
 
 // 处理音频导入
-const handleImportAudio = (file) => {
-  console.log('导入音频:', file)
+const handleImportAudio = (data) => {
+  if (!checkLogin()) {
+    return
+  }
+
+  console.log('导入音频:', data)
   showImportModal.value = false
-  // TODO: 调用API上传音频
+  
+  // 更新当前音频状态，包含转写文本
+  currentAudio.value = {
+    url: data.url,
+    name: data.file.name,
+    status: 'completed', // 由于已经有转写结果，直接设置为completed
+    transcription: data.transcription // 添加转写文本
+  }
 }
 
 // 处理转写保存

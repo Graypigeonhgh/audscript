@@ -38,13 +38,21 @@
           </div>
         </div>
 
+        <div v-if="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
         <div v-if="selectedFile" class="file-info">
           <div class="file-details">
             <span class="file-name">{{ selectedFile.name }}</span>
             <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
           </div>
-          <button class="primary-btn" @click="handleUpload">
-            开始导入
+          <button 
+            class="primary-btn" 
+            @click="handleUpload"
+            :disabled="isLoading"
+          >
+            {{ isLoading ? '导入中...' : '开始导入' }}
           </button>
         </div>
       </div>
@@ -54,11 +62,14 @@
 
 <script setup>
 import { ref } from 'vue'
+import { audioApi } from '@/api'
 
 const emit = defineEmits(['close', 'import'])
 const fileInput = ref(null)
 const selectedFile = ref(null)
 const isDragging = ref(false)
+const isLoading = ref(false)
+const errorMessage = ref('')
 
 const triggerFileInput = () => {
   fileInput.value.click()
@@ -89,9 +100,54 @@ const handleFileSelect = (e) => {
   }
 }
 
-const handleUpload = () => {
-  if (selectedFile.value) {
-    emit('import', selectedFile.value)
+const handleUpload = async () => {
+  // 检查是否已登录
+  const token = localStorage.getItem('token')
+  if (!token) {
+    errorMessage.value = '请先登录后再导入音频'
+    return
+  }
+
+  if (!selectedFile.value) {
+    errorMessage.value = '请先选择音频文件'
+    return
+  }
+
+  // 检查文件格式
+  const allowedTypes = ['audio/mp3', 'audio/wav', 'audio/mpeg', 'audio/ogg', 'audio/webm']
+  if (!allowedTypes.includes(selectedFile.value.type)) {
+    errorMessage.value = '不支持的音频格式，请选择 MP3、WAV、OGG 或 WebM 格式的文件'
+    return
+  }
+
+  // 检查文件大小
+  const maxSize = 100 * 1024 * 1024 // 100MB
+  if (selectedFile.value.size > maxSize) {
+    errorMessage.value = '文件大小不能超过100MB'
+    return
+  }
+
+  try {
+    isLoading.value = true
+    errorMessage.value = ''
+    
+    const formData = new FormData()
+    formData.append('file', selectedFile.value)
+    
+    const response = await audioApi.uploadAndTranscribe(selectedFile.value)
+    
+    emit('import', {
+      file: selectedFile.value,
+      url: URL.createObjectURL(selectedFile.value),
+      transcription: response.text
+    })
+    
+    emit('close')
+  } catch (error) {
+    console.error('导入音频失败:', error)
+    errorMessage.value = error.message || '导入音频失败，请重试'
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -178,5 +234,19 @@ const formatFileSize = (bytes) => {
   &:hover {
     text-decoration: underline;
   }
+}
+
+.error-message {
+  color: #ef4444;
+  margin: 8px 0;
+  padding: 8px;
+  background: #fee2e2;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style> 

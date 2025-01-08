@@ -11,9 +11,12 @@ export const projectApi = {
    */
   getProjects(params) {
     return request({
-      url: '/api/projects',
+      url: '/api/audio-files',
       method: 'get',
-      params
+      params: {
+        page: params.page,
+        size: params.size
+      }
     })
   },
 
@@ -62,7 +65,7 @@ export const projectApi = {
    */
   deleteProject(projectId) {
     return request({
-      url: `/api/projects/${projectId}`,
+      url: `/api/audio-files/${projectId}`,
       method: 'delete'
     })
   }

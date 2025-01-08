@@ -956,6 +956,7 @@ const stopTimer = () => {
     clearInterval(timer)
     timer = null
   }
+
 }
 
 // 添加设备检测和初始化函数

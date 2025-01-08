@@ -2,8 +2,8 @@ import axios from 'axios'
 
 // 创建axios实例
 const request = axios.create({
-  // baseURL: 'http://localhost:8899',  // 直接请求后端地址
-  timeout: 15000,
+  baseURL: 'http://localhost:8899',  // 添加正确的baseURL
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -22,7 +22,7 @@ request.interceptors.request.use(
     
     const token = localStorage.getItem('token')
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers.Authorization = `Bearer ${token}` // 确保token格式正确
     }
     return config
   },
@@ -34,45 +34,30 @@ request.interceptors.request.use(
 // 响应拦截器
 request.interceptors.response.use(
   response => {
-    // 添加调试日志
-    console.log('Response Data:', response.data)
     return response.data
   },
   error => {
-    // 增强错误日志
-    console.error('Request Error:', {
-      config: error.config,
-      response: error.response,
-      message: error.message
-    })
-    
-    if (error.response) {
-      const { status, data } = error.response
-      switch (status) {
-        case 401:
-          localStorage.removeItem('token')
-          console.error('未授权或登录已过期')
-          break
-        case 403:
-          console.error('没有权限访问该资源')
-          break
-        case 404:
-          console.error('请求的资源不存在，URL:', error.config.url)
-          break
-        case 400:
-          console.error('请求参数错误:', data.message)
-          break
-        case 500:
-          console.error('服务器内部错误:', data.message)
-          break
-        default:
-          console.error(`未知错误 ${status}:`, data.message)
-      }
-    } else if (error.request) {
-      console.error('网络错误，请检查您的网络连接')
-    } else {
-      console.error('请求配置错误:', error.message)
+    if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
+      return Promise.reject(new Error('请求超时，请检查网络连接'))
     }
+
+    if (error.response) {
+      const { status } = error.response
+      
+      if (status === 401) {
+        // 未登录或token过期
+        localStorage.removeItem('token')
+        // 可以在这里触发显示登录框
+        return Promise.reject(new Error('请先登录'))
+      }
+      
+      if (status === 413) {
+        return Promise.reject(new Error('文件太大，请选择小于100MB的文件'))
+      }
+
+      return Promise.reject(new Error(error.response.data?.message || '请求失败'))
+    }
+    
     return Promise.reject(error)
   }
 )
