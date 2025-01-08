@@ -114,10 +114,18 @@ const handlePageChange = (page) => {
 
 // 处理播放
 const handlePlay = (file) => {
+  // 确保文件有URL
+  if (!file.fileUrl) {
+    console.error('文件URL不存在')
+    return
+  }
+
   router.push({
     name: 'workspace',
     params: { id: file.id },
-    query: { mode: 'play' }
+    query: { 
+      mode: 'play'
+    }
   })
 }
 

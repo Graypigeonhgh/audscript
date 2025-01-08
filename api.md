@@ -116,14 +116,25 @@ GET /api/audio-files/{id}
 响应示例：
 ```json
 {
-    "id": 1,
-    "fileName": "test.mp3",
-    "fileUrl": "https://xxx.oss-cn-xxx.aliyuncs.com/xxx.mp3",
-    "fileSize": 1024567,
-    "fileType": "audio/mpeg",
-    "userId": 1,
-    "createdAt": "2024-01-09T10:00:00",
-    "updatedAt": "2024-01-09T10:00:00"
+    "audioFile": {
+        "id": 1,
+        "fileName": "test.mp3",
+        "fileUrl": "https://xxx.oss-cn-xxx.aliyuncs.com/xxx.mp3",
+        "fileSize": 1024567,
+        "fileType": "audio/mpeg",
+        "userId": 1,
+        "createdAt": "2024-01-09T10:00:00",
+        "updatedAt": "2024-01-09T10:00:00"
+    },
+    "transcription": {
+        "id": 1,
+        "audioFileId": 1,
+        "content": "转写的文本内容...",
+        "status": "COMPLETED",
+        "userId": 1,
+        "createdAt": "2024-01-09T10:01:00",
+        "updatedAt": "2024-01-09T10:01:00"
+    }
 }
 ```
 

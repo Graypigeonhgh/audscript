@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // 创建axios实例
 const request = axios.create({
-  baseURL: 'http://localhost:8899',  // 添加正确的baseURL
+  baseURL: process.env.VUE_APP_API_BASE_URL || 'http://localhost:8899',
   timeout: 60000,
   headers: {
     'Content-Type': 'application/json'

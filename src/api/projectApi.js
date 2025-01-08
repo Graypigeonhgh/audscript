@@ -17,6 +17,15 @@ export const projectApi = {
         page: params.page,
         size: params.size
       }
+    }).then(response => {
+      // 确保每个文件对象都有完整的URL
+      if (response.records) {
+        response.records = response.records.map(file => ({
+          ...file,
+          fileUrl: file.fileUrl || `${process.env.VUE_APP_API_BASE_URL}/api/audio-files/${file.id}/download`
+        }))
+      }
+      return response
     })
   },
 
@@ -67,6 +76,25 @@ export const projectApi = {
     return request({
       url: `/api/audio-files/${projectId}`,
       method: 'delete'
+    })
+  },
+
+  /**
+   * 获取音频文件详情
+   * @param {string} fileId - 音频文件ID
+   * @returns {Promise<Object>} 音频文件详情
+   */
+  getAudioFileDetail(fileId) {
+    return request({
+      url: `/api/audio-files/${fileId}`,
+      method: 'get'
+    }).then(response => {
+      // 确保音频文件URL是完整的
+      if (response.audioFile) {
+        response.audioFile.fileUrl = response.audioFile.fileUrl || 
+          `${process.env.VUE_APP_API_BASE_URL}/api/audio-files/${response.audioFile.id}/download`
+      }
+      return response
     })
   }
 } 
