@@ -137,6 +137,9 @@ onMounted(() => {
   const savedTheme = localStorage.getItem('theme') || 'dark'
   theme.value = savedTheme
   document.documentElement.setAttribute('data-theme', savedTheme)
+  
+  // 检查登录状态
+  checkLoginStatus()
 })
 
 // 处理用户菜单
@@ -151,11 +154,9 @@ const closeUserMenu = () => {
 // 处理登录
 const handleLogin = async (userData) => {
   try {
-    // 更新用户状态，使用完整的用户信息
+    // 更新用户状态
     currentUser.value = {
-      id: userData.id,
-      username: userData.username,
-      email: userData.email
+      username: userData.username
     }
     
     showLoginModal.value = false
@@ -228,6 +229,20 @@ const handlePodcastImport = (podcastData) => {
   console.log('导入播客:', podcastData)
   showPodcastModal.value = false
   // TODO: 调用API处理播客导入
+}
+
+// 检查登录状态的函数
+const checkLoginStatus = () => {
+  const token = localStorage.getItem('token')
+  const savedUsername = localStorage.getItem('username')
+  
+  if (token && savedUsername) {
+    currentUser.value = {
+      username: savedUsername
+    }
+  } else {
+    currentUser.value = null
+  }
 }
 </script>
 

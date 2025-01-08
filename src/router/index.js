@@ -35,4 +35,18 @@ const router = createRouter({
   routes
 })
 
+// 添加需要登录才能访问的路由列表
+const authRoutes = ['workspace', 'profile', 'settings']
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  
+  if (authRoutes.includes(to.name) && !token) {
+    // 如果是需要登录的路由，但用户未登录，则跳转到首页
+    next('/')
+  } else {
+    next()
+  }
+})
+
 export default router 

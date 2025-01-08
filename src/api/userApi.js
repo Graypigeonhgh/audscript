@@ -6,7 +6,7 @@ export const userApi = {
    */
   register(data) {
     return request({
-      url: 'http://localhost:8899/api/user/register',
+      url: '/api/user/register',
       method: 'post',
       data: {
         username: data.username,
@@ -26,6 +26,15 @@ export const userApi = {
       data: {
         username: data.username,
         password: data.password
+      }
+    }).then(response => {
+      const token = response.data?.token || response.token
+      if (!token) {
+        throw new Error('登录失败：未收到有效的token')
+      }
+      return {
+        token,
+        username: data.username
       }
     })
   }

@@ -137,9 +137,13 @@ const handleSubmit = async () => {
       
       // 保存token到localStorage
       localStorage.setItem('token', response.token)
+      localStorage.setItem('username', formData.username)
       
-      // 触发登录成功事件，传递完整的用户信息
-      emit('login', response.user)
+      // 触发登录成功事件
+      emit('login', { 
+        username: formData.username,
+        token: response.token 
+      })
       emit('close')
     } else {
       // 注册
@@ -149,7 +153,6 @@ const handleSubmit = async () => {
         email: formData.email
       })
       
-      // 注册成功后切换到登录界面
       alert('注册成功，请登录')
       isLogin.value = true
       formData.password = ''

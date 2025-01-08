@@ -77,6 +77,9 @@ import { ref, onMounted } from 'vue'
 import RecordModal from '@/components/RecordModal.vue'
 import ImportModal from '@/components/ImportModal.vue'
 import { projectApi } from '@/api'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const showRecordModal = ref(false)
 const showImportModal = ref(false)
@@ -137,6 +140,11 @@ const deleteProject = async (projectId) => {
 
 onMounted(() => {
   fetchProjects()
+  // 检查是否已登录
+  const token = localStorage.getItem('token')
+  if (!token) {
+    router.push('/')
+  }
 })
 
 // 格式化日期
