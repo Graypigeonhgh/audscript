@@ -16,7 +16,19 @@
             <input 
               type="text" 
               v-model="formData.username"
-              placeholder="请输入用户名或邮箱"
+              placeholder="用户名"
+              required
+              class="form-input"
+              :minlength="4"
+              :maxlength="20"
+            />
+          </div>
+          
+          <div class="input-group" v-if="!isLogin">
+            <input 
+              type="email" 
+              v-model="formData.email"
+              placeholder="邮箱"
               required
               class="form-input"
             />
@@ -26,9 +38,11 @@
             <input 
               type="password" 
               v-model="formData.password"
-              placeholder="请输入密码"
+              placeholder="密码"
               required
               class="form-input"
+              :minlength="6"
+              :maxlength="20"
             />
           </div>
           
@@ -36,19 +50,25 @@
             <input 
               type="password" 
               v-model="formData.confirmPassword"
-              placeholder="请再次输入密码"
+              placeholder="确认密码"
               required
               class="form-input"
+              :minlength="6"
+              :maxlength="20"
             />
           </div>
+
+          <div v-if="errorMessage" class="error-message">
+            {{ errorMessage }}
+          </div>
           
-          <button type="submit" class="primary-btn">
-            {{ isLogin ? '登录' : '注册' }}
+          <button type="submit" class="primary-btn" :disabled="loading">
+            {{ loading ? '处理中...' : (isLogin ? '登录' : '注册') }}
           </button>
         </form>
         
         <div class="form-footer">
-          <button class="text-btn" @click="isLogin = !isLogin">
+          <button class="text-btn" @click="switchMode">
             {{ isLogin ? '没有账号？去注册' : '已有账号？去登录' }}
           </button>
         </div>
@@ -63,19 +83,53 @@ import { userApi } from '@/api'
 
 const emit = defineEmits(['close', 'login'])
 const isLogin = ref(true)
+const loading = ref(false)
+const errorMessage = ref('')
+
 const formData = reactive({
   username: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  email: ''
 })
+
+const switchMode = () => {
+  isLogin.value = !isLogin.value
+  errorMessage.value = ''
+  formData.username = ''
+  formData.password = ''
+  formData.confirmPassword = ''
+  formData.email = ''
+}
+
+const validateForm = () => {
+  if (!isLogin.value && formData.password !== formData.confirmPassword) {
+    errorMessage.value = '两次输入的密码不一致'
+    return false
+  }
+  
+  if (formData.username.length < 4 || formData.username.length > 20) {
+    errorMessage.value = '用户名长度必须在4-20个字符之间'
+    return false
+  }
+  
+  if (formData.password.length < 6 || formData.password.length > 20) {
+    errorMessage.value = '密码长度必须在6-20个字符之间'
+    return false
+  }
+
+  return true
+}
 
 const handleSubmit = async () => {
   try {
+    if (!validateForm()) return
+    
     loading.value = true
     errorMessage.value = ''
 
     if (isLogin.value) {
-      // 调用登录API
+      // 登录
       const response = await userApi.login({
         username: formData.username,
         password: formData.password
@@ -84,11 +138,11 @@ const handleSubmit = async () => {
       // 保存token到localStorage
       localStorage.setItem('token', response.token)
       
-      // 触发登录成功事件
-      emit('login', { username: formData.username })
+      // 触发登录成功事件，传递完整的用户信息
+      emit('login', response.user)
       emit('close')
     } else {
-      // 调用注册API
+      // 注册
       await userApi.register({
         username: formData.username,
         password: formData.password,
@@ -98,6 +152,7 @@ const handleSubmit = async () => {
       // 注册成功后切换到登录界面
       alert('注册成功，请登录')
       isLogin.value = true
+      formData.password = ''
     }
   } catch (error) {
     console.error('操作失败:', error)
@@ -108,33 +163,21 @@ const handleSubmit = async () => {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '@/assets/styles/modal.scss';
 
-/* 只保留特定于登录模态框的样式 */
-form {
-  width: 85%;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.error-message {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: #fee2e2;
+  border-radius: 4px;
+  text-align: center;
 }
 
 .form-footer {
   margin-top: 1.5rem;
   text-align: center;
-}
-
-.text-btn {
-  background: none;
-  border: none;
-  color: var(--accent-color);
-  cursor: pointer;
-  padding: 0.5rem;
-  font-size: 0.95rem;
-  
-  &:hover {
-    text-decoration: underline;
-  }
 }
 </style> 

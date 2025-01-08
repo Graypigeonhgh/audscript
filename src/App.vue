@@ -151,17 +151,11 @@ const closeUserMenu = () => {
 // 处理登录
 const handleLogin = async (userData) => {
   try {
-    const response = await userApi.login({
-      username: userData.username,
-      password: userData.password
-    })
-    
-    // 保存token
-    localStorage.setItem('token', response.token)
-    
-    // 更新用户状态
+    // 更新用户状态，使用完整的用户信息
     currentUser.value = {
-      username: userData.username
+      id: userData.id,
+      username: userData.username,
+      email: userData.email
     }
     
     showLoginModal.value = false
